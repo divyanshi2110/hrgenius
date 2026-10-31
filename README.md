@@ -65,6 +65,16 @@ npm start
 
 ---
 
+## Cloud & Production Deployment
+
+For complete, step-by-step instructions on deploying the frontend to **Vercel** / **Netlify** and backend to **Render** / **Railway** or running via **Docker**, see:
+* **[DEPLOYMENT.md](DEPLOYMENT.md)** — Production & Cloud Deployment Guide
+* **Docker Compose**: Run `docker compose up --build -d` for single-command full-stack containerization.
+* **Vercel**: Preconfigured via `vercel.json` and `hrgenius-frontend/vercel.json`.
+* **Render**: Preconfigured via `render.yaml` and `hrgenius-backend/Dockerfile`.
+
+---
+
 ## Default Credentials (Local Evaluation)
 
 | Role | Username | Password | Linked Employee | Permissions |

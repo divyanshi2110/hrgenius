@@ -9,13 +9,14 @@ import {
   LeaveRequestCreatePayload,
   LeaveActionPayload
 } from '../models/leave.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LeaveService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8081/api/v1/leave';
+  private readonly baseUrl = `${environment.apiUrl}/leave`;
 
   // --- Leave Types ---
   getLeaveTypes(activeOnly: boolean = false): Observable<ApiResponse<LeaveType[]>> {

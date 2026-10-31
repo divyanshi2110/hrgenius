@@ -2,13 +2,14 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { ApiResponse, AuthResponse, UserSummary } from '../models/api-response.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8081/api/v1/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
 
   private readonly TOKEN_KEY = 'hrgenius_jwt_token';
   private readonly USER_KEY = 'hrgenius_user_profile';

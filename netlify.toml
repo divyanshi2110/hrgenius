@@ -1,0 +1,9 @@
+[build]
+  base = "hrgenius-frontend"
+  publish = "dist/hrgenius-frontend/browser"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

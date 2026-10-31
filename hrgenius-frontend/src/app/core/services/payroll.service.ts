@@ -3,13 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { PayrollRecord, PayrollProcessRequest, SalaryStructure, SalaryStructureRequest } from '../models/payroll.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PayrollService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8081/api/v1/payroll';
+  private readonly baseUrl = `${environment.apiUrl}/payroll`;
 
   getPayrolls(params?: { employeeId?: number; month?: number; year?: number; status?: string }): Observable<ApiResponse<PayrollRecord[]>> {
     let httpParams = new HttpParams();

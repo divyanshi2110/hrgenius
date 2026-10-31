@@ -3,13 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { Attendance, AttendanceCreatePayload, AttendanceUpdatePayload } from '../models/attendance.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AttendanceService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8081/api/v1/attendance';
+  private readonly baseUrl = `${environment.apiUrl}/attendance`;
 
   getAttendance(filters?: {
     employeeId?: number;

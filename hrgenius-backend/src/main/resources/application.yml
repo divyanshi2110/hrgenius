@@ -11,7 +11,7 @@ spring:
     url: ${DB_URL:jdbc:oracle:thin:@//localhost:1521/XE}
     username: ${DB_USERNAME:HRGENIUS}
     password: ${DB_PASSWORD:hrgenius_secret}
-    driver-class-name: oracle.jdbc.OracleDriver
+    driver-class-name: ${DB_DRIVER:oracle.jdbc.OracleDriver}
     hikari:
       pool-name: HRGeniusHikariCP
       minimum-idle: 2
@@ -20,7 +20,7 @@ spring:
       connection-timeout: 20000
 
   jpa:
-    database-platform: org.hibernate.dialect.OracleDialect
+    database-platform: ${JPA_DIALECT:org.hibernate.dialect.OracleDialect}
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: ${SHOW_SQL:false}
@@ -37,4 +37,34 @@ app:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 hours
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://*.vercel.app,https://*.netlify.app,https://*.onrender.com,https://*.railway.app}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: cloud
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:hrgenius;MODE=Oracle;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;DEFAULT_NULL_UNTIL_END=TRUE}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    database-platform: ${JPA_DIALECT:org.hibernate.dialect.H2Dialect}
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hrgenius}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}

@@ -10,7 +10,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const token = authService.token();
 
   let authReq = req;
-  if (token && req.url.includes(':8081')) {
+  if (token && (req.url.includes('/api/v1') || req.url.includes(':8081'))) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`

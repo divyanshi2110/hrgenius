@@ -1,0 +1,66 @@
+name: Deploy HRGenius to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'hrgenius-frontend/package.json'
+
+      - name: Install dependencies
+        run: |
+          cd hrgenius-frontend
+          npm install
+
+      - name: Build Angular application for GitHub Pages
+        run: |
+          cd hrgenius-frontend
+          npm run build -- --base-href /hrgenius/
+          # Support SPA client-side deep linking on GitHub Pages
+          cp dist/hrgenius-frontend/browser/index.html dist/hrgenius-frontend/browser/404.html
+
+      # 1. Deploy via modern GitHub Actions Pages
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: hrgenius-frontend/dist/hrgenius-frontend/browser
+
+      - name: Deploy to GitHub Pages (Actions)
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # 2. Also publish to gh-pages branch (ensures compatibility if repo Pages source is set to branch)
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./hrgenius-frontend/dist/hrgenius-frontend/browser
+          keep_files: false

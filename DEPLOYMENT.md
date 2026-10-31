@@ -1,105 +1,79 @@
 # HRGenius Cloud & Production Deployment Guide
 
-This guide details how to deploy the HRGenius Enterprise HRMS system to the cloud for free with live public URLs.
+HRGenius supports both **Direct GitHub Deployment (GitHub Pages & Actions)** and **Full Cloud Hosting (Vercel + Render / Railway)**.
 
 ---
 
-## 1. Architecture Overview
+## 1. Direct GitHub Pages Deployment (Zero Third-Party Accounts)
 
-| Component | Technology | Cloud Host (Recommended) | Configuration Files |
-| :--- | :--- | :--- | :--- |
-| **Frontend Portal** | Angular 21 (SPA) | **Vercel** / **Netlify** | `vercel.json`, `netlify.toml` |
-| **Backend REST API** | Spring Boot 3.3.4 (Java 21) | **Render** / **Railway** | `Dockerfile`, `render.yaml`, `mvnw` |
-| **Database** | Oracle XE / Cloud H2 / PostgreSQL | Embedded Cloud or Managed DB | `application.yml` (`cloud`/`postgres` profiles) |
+Your repository already includes a fully automated GitHub Actions workflow (`.github/workflows/deploy.yml`) that builds Angular and publishes directly to GitHub Pages.
 
----
+### Live URL Format:
+```
+https://divyanshi2110.github.io/hrgenius/
+```
 
-## 2. Frontend Deployment (Vercel) — 2 Minutes
+### How to Enable GitHub Pages in 1 Click:
+1. Open your repository on GitHub:
+   [https://github.com/divyanshi2110/hrgenius/settings/pages](https://github.com/divyanshi2110/hrgenius/settings/pages)
+2. Under **Build and deployment** &rarr; **Source**:
+   * Select **GitHub Actions** (Recommended) OR **Deploy from a branch** &rarr; select `gh-pages` branch & folder `/ (root)`.
+3. Click **Save**.
+4. The workflow in the **Actions** tab ([https://github.com/divyanshi2110/hrgenius/actions](https://github.com/divyanshi2110/hrgenius/actions)) will build and deploy the app automatically!
+5. Once complete, your live site is live at:
+   **`https://divyanshi2110.github.io/hrgenius/`**
 
-Vercel natively integrates with GitHub and auto-deploys on every commit.
-
-### Steps:
-1. Log in to [Vercel](https://vercel.com/) with your GitHub account (`divyanshi2110`).
-2. Click **Add New...** &rarr; **Project**.
-3. Locate `divyanshi2110/hrgenius` and click **Import**.
-4. Configure Project:
-   * **Root Directory**: Click `Edit` and select `hrgenius-frontend`.
-   * **Framework Preset**: Angular (automatically detected).
-   * **Build Command**: `npm run build` (default).
-   * **Output Directory**: `dist/hrgenius-frontend/browser` (preconfigured in `vercel.json`).
-5. (Optional) Under **Environment Variables**, add:
-   * `HRGENIUS_API_URL`: Your deployed backend URL (e.g. `https://hrgenius-backend.onrender.com/api/v1`).
-6. Click **Deploy**.
-7. In ~60 seconds, your live production URL (e.g. `https://hrgenius-xxx.vercel.app`) will be active.
+> [!TIP]
+> The app is built with an automatic Cloud Demo Mode: anyone testing the GitHub Pages link can sign in with `admin` / `Admin@123`, `manager` / `Manager@123`, or `employee` / `Employee@123` to test all 16 employees, recruitment Kanban, onboarding checklists, OKRs, payroll, and compliance filings seamlessly.
 
 ---
 
-## 3. Backend Deployment (Render) — 3 Minutes
+## 2. Frontend Deployment via Vercel (Alternative)
 
-Render hosts Java / Docker web services with automatic HTTPS and free continuous deployment.
+If you prefer Vercel for custom domain management or edge caching:
+1. Open [vercel.com/new](https://vercel.com/new).
+2. Import `divyanshi2110/hrgenius`.
+3. Root Directory: `hrgenius-frontend` (or root with the included root `package.json`).
+4. Framework Preset: **Angular**.
+5. Click **Deploy**.
 
-### Steps:
-1. Log in to [Render Dashboard](https://dashboard.render.com/) with your GitHub account.
-2. Click **New +** &rarr; **Web Service**.
-3. Connect your repository: `divyanshi2110/hrgenius`.
-4. Configure the service:
-   * **Name**: `hrgenius-backend`
-   * **Region**: Oregon (or closest to you)
+---
+
+## 3. Backend REST API Deployment via Render
+
+For a live cloud Spring Boot backend:
+1. Open [dashboard.render.com](https://dashboard.render.com) and click **New +** &rarr; **Web Service**.
+2. Connect `divyanshi2110/hrgenius`.
+3. Settings:
    * **Root Directory**: `hrgenius-backend`
-   * **Runtime**: Select **Docker** (recommended; utilizes the included multi-stage Java 21 container).
-     *(Alternatively, select `Java` with Build Command `./mvnw clean package -DskipTests` and Start Command `java -jar target/hrgenius-backend-1.0.0.jar`)*
-   * **Instance Type**: **Free**
-5. Expand **Advanced** and set:
+   * **Runtime**: **Docker** *(or Java with `./mvnw clean package -DskipTests`)*
+   * **Plan**: Free
    * **Health Check Path**: `/api/v1/health`
    * **Environment Variables**:
-     * `PORT`: `8081`
-     * `SPRING_PROFILES_ACTIVE`: `cloud` *(launches with autonomous cloud mode, pre-seeding all 16 enterprise employees, attendance, and payroll)*
-     * `CORS_ALLOWED_ORIGINS`: `*` *(or your specific Vercel URL)*
-6. Click **Create Web Service**.
-7. Render will build and deploy the container. Once live, test your health check at:
-   `https://<your-service-name>.onrender.com/api/v1/health`
+     * `SPRING_PROFILES_ACTIVE`: `cloud`
+     * `CORS_ALLOWED_ORIGINS`: `*`
+4. Click **Deploy Web Service**.
 
 ---
 
-## 4. Alternative: Netlify Deployment (Frontend)
+## 4. Single-Command Docker Deployment (Local or VPS)
 
-If you prefer Netlify:
-1. Log in to [Netlify](https://app.netlify.com/).
-2. Click **Add new site** &rarr; **Import an existing project**.
-3. Select GitHub &rarr; `divyanshi2110/hrgenius`.
-4. The included `netlify.toml` automatically configures:
-   * Base: `hrgenius-frontend`
-   * Publish: `dist/hrgenius-frontend/browser`
-   * Build command: `npm run build`
-5. Click **Deploy Site**.
-
----
-
-## 5. Alternative: Single-Command Docker Deployment (Local or VPS)
-
-To run the entire system on a virtual server (e.g., AWS EC2, DigitalOcean, Linode) or locally:
-
+To spin up both frontend and backend containers together:
 ```bash
-# Clone the repository
 git clone https://github.com/divyanshi2110/hrgenius.git
 cd hrgenius
-
-# Build and start all services
 docker compose up --build -d
 ```
 
-* **Frontend Portal**: `http://localhost`
-* **Backend API**: `http://localhost:8081`
-* **Health Check**: `http://localhost:8081/api/v1/health`
+* **Frontend**: `http://localhost`
+* **Backend**: `http://localhost:8081`
 
 ---
 
-## 6. Default Login Credentials
-
-Once deployed, the following enterprise accounts are available immediately:
+## 5. Enterprise Credentials
 
 | Role | Username | Password | Access Privileges |
 | :--- | :--- | :--- | :--- |
-| **System Admin** | `admin` | `Admin@123` | Full administrative privileges across all modules |
+| **System Admin** | `admin` | `Admin@123` | Full access across all 9 modules |
 | **HR Director** | `manager` | `Manager@123` | Approvals, payroll processing, recruitment ATS |
 | **Senior Engineer** | `employee` | `Employee@123` | Self-service portal, leave requests, payslips |

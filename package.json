@@ -1,0 +1,20 @@
+{
+  "name": "hrgenius",
+  "version": "1.0.0",
+  "description": "HRGenius Enterprise HR Management System",
+  "private": true,
+  "scripts": {
+    "build": "cd hrgenius-frontend && npm install && npm run build",
+    "build:pages": "cd hrgenius-frontend && npm install && npm run build -- --base-href /hrgenius/",
+    "start": "cd hrgenius-frontend && npm start",
+    "test": "cd hrgenius-frontend && npm test"
+  },
+  "keywords": [
+    "angular",
+    "spring-boot",
+    "hrms",
+    "enterprise"
+  ],
+  "author": "Divyanshi Mishra",
+  "license": "MIT"
+}

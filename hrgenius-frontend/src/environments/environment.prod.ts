@@ -4,14 +4,9 @@ const getApiBaseUrl = (): string => {
     if (override) {
       return override.replace(/\/+$/, '');
     }
-
-    // If running locally, route to local Spring Boot instance
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8081/api/v1';
-    }
   }
-  // Production cloud backend (Render)
-  return 'https://hrgenius-backend.onrender.com/api/v1';
+  // Default to local enterprise Spring Boot backend on port 8081
+  return 'http://localhost:8081/api/v1';
 };
 
 export const environment = {

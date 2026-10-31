@@ -13,7 +13,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:4200,https://*.vercel.app,https://*.netlify.app,https://*.onrender.com,https://*.railway.app}")
+    @Value("${app.cors.allowed-origins:http://localhost:4200,http://127.0.0.1:4200,http://localhost:8081,https://divyanshi2110.github.io,https://*.github.io,https://*.vercel.app,https://*.netlify.app,https://*.onrender.com,https://*.railway.app}")
     private String allowedOrigins;
 
     @Bean
@@ -32,8 +32,8 @@ public class CorsConfig {
             configuration.setAllowedOrigins(origins);
         }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Access-Control-Request-Private-Network"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Access-Control-Allow-Private-Network"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

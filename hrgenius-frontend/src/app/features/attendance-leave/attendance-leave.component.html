@@ -1,0 +1,700 @@
+<div class="attendance-leave-page">
+  <!-- Top Navigation Header -->
+  <div class="page-top">
+    <div>
+      <div class="breadcrumbs">Enterprise Portal / Workforce Operations</div>
+      <h1 class="page-title">Attendance & Leave Management</h1>
+      <p class="page-subtitle">Daily muster roll, punch timestamps, leave quotas, and supervisor approval pipelines</p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Quick Self Clock In / Out Button -->
+      @if (authService.currentUser()?.employeeId) {
+        @if (!myTodayAttendance()) {
+          <button class="btn-success" (click)="clockInNow()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Clock In (Today)
+          </button>
+        } @else if (myTodayAttendance() && !myTodayAttendance()?.checkOutTime) {
+          <button class="btn-warning" (click)="clockOutNow()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Clock Out (In: {{ myTodayAttendance()?.checkInTime }})
+          </button>
+        } @else {
+          <span class="clocked-out-badge">
+            ✓ Clocked Out ({{ myTodayAttendance()?.checkOutTime }})
+          </span>
+        }
+      }
+
+      <!-- Apply Leave Button -->
+      <button class="btn-primary" (click)="openApplyLeaveModal()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Apply for Leave
+      </button>
+
+      <!-- Record Attendance (Manager / Admin) -->
+      @if (authService.isAdmin() || authService.isManager()) {
+        <button class="btn-secondary" (click)="openAddAttendanceModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          Record Attendance
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  @if (alertMessage(); as alert) {
+    <div class="alert-banner" [class.success]="alert.type === 'success'" [class.danger]="alert.type === 'danger'">
+      <span>{{ alert.text }}</span>
+      <button class="btn-close" (click)="alertMessage.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- Module Navigation Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.active]="activeTab() === 'attendance'" (click)="activeTab.set('attendance')">
+      Daily Muster Roll
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'leave-requests'" (click)="activeTab.set('leave-requests')">
+      Leave Applications & Approvals
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'leave-balances'" (click)="activeTab.set('leave-balances')">
+      Leave Balances & Quotas
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'leave-types'" (click)="activeTab.set('leave-types')">
+      Leave Policies
+    </button>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 1: DAILY ATTENDANCE MUSTER ROLL                             -->
+  <!-- ============================================================== -->
+  @if (activeTab() === 'attendance') {
+    <div class="tab-content">
+      <!-- Filter Bar -->
+      <div class="corporate-card filter-card">
+        <div class="filters-grid">
+          <div class="form-group">
+            <label>Attendance Date</label>
+            <div style="display: flex; gap: 4px;">
+              <input type="date" [(ngModel)]="filterDate" (change)="loadAttendanceData()" style="flex: 1;" />
+              <button type="button" class="btn-secondary" (click)="clearDateFilter()" style="padding: 0.35rem 0.5rem; font-size: 0.75rem;" title="Show All Dates">All</button>
+              <button type="button" class="btn-secondary" (click)="setTodayFilter()" style="padding: 0.35rem 0.5rem; font-size: 0.75rem;" title="Show Today">Today</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Employee</label>
+            <select [(ngModel)]="filterEmpId" (change)="loadAttendanceData()">
+              <option [ngValue]="null">All Employees</option>
+              @for (emp of employees(); track emp.id) {
+                <option [ngValue]="emp.id">{{ emp.fullName }} ({{ emp.employeeCode }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <select [(ngModel)]="filterDeptId" (change)="loadAttendanceData()">
+              <option [ngValue]="null">All Departments</option>
+              @for (dept of departments(); track dept.id) {
+                <option [ngValue]="dept.id">{{ dept.deptName }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="filterStatus" (change)="loadAttendanceData()">
+              <option value="">All Statuses</option>
+              <option value="PRESENT">Present</option>
+              <option value="WORK_FROM_HOME">Work From Home</option>
+              <option value="HALF_DAY">Half Day</option>
+              <option value="ON_LEAVE">On Leave</option>
+              <option value="ABSENT">Absent</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn-secondary" (click)="loadAttendanceData()">Apply Filter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Table -->
+      <div class="corporate-card table-card">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>In Time</th>
+                <th>Out Time</th>
+                <th>Hours</th>
+                <th>Remarks</th>
+                @if (authService.isAdmin() || authService.isManager()) {
+                  <th class="actions-header">Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="9" class="loading-state">Loading attendance records...</td>
+                </tr>
+              } @else if (attendanceRecords().length === 0) {
+                <tr>
+                  <td colspan="9" class="empty-state">No attendance records found for the selected criteria.</td>
+                </tr>
+              } @else {
+                @for (rec of attendanceRecords(); track rec.id) {
+                  <tr>
+                    <td class="date-cell">{{ rec.attendanceDate }}</td>
+                    <td>
+                      <div class="employee-meta">
+                        <span class="emp-name">{{ rec.employeeName }}</span>
+                        <span class="emp-code">{{ rec.employeeCode }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="dept-text">{{ rec.departmentName || '—' }}</span>
+                      <small class="desig-text">{{ rec.designationTitle || '' }}</small>
+                    </td>
+                    <td>
+                      <span class="status-badge" [ngClass]="rec.status.toLowerCase()">
+                        {{ rec.status.replace('_', ' ') }}
+                      </span>
+                    </td>
+                    <td class="time-cell">{{ rec.checkInTime || '—' }}</td>
+                    <td class="time-cell">{{ rec.checkOutTime || '—' }}</td>
+                    <td class="hours-cell">
+                      <strong>{{ rec.workHours !== null ? rec.workHours + ' hrs' : '—' }}</strong>
+                    </td>
+                    <td class="remarks-cell">{{ rec.remarks || '—' }}</td>
+                    @if (authService.isAdmin() || authService.isManager()) {
+                      <td class="actions-cell">
+                        <button class="btn-action edit" (click)="openEditAttendanceModal(rec)" title="Edit Attendance">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </button>
+                        @if (authService.isAdmin()) {
+                          <button class="btn-action delete" (click)="deleteAttendance(rec.id)" title="Delete Record">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                          </button>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- TAB 2: LEAVE APPLICATIONS & APPROVALS                          -->
+  <!-- ============================================================== -->
+  @if (activeTab() === 'leave-requests') {
+    <div class="tab-content">
+      <!-- Sub Scope Filter & Status Filter -->
+      <div class="corporate-card filter-card">
+        <div class="leave-toolbar">
+          <div class="scope-toggle">
+            <button class="scope-btn" [class.active]="leaveFilterScope() === 'my'" (click)="setLeaveScope('my')">
+              My Applications
+            </button>
+            @if (authService.isManager() || authService.isAdmin()) {
+              <button class="scope-btn" [class.active]="leaveFilterScope() === 'team'" (click)="setLeaveScope('team')">
+                Team Approvals
+              </button>
+            }
+            @if (authService.isAdmin()) {
+              <button class="scope-btn" [class.active]="leaveFilterScope() === 'all'" (click)="setLeaveScope('all')">
+                All Enterprise Leaves
+              </button>
+            }
+          </div>
+
+          <div class="filters-inline">
+            <select [(ngModel)]="leaveFilterStatus" (change)="loadLeaveRequests()">
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+
+            <select [(ngModel)]="leaveFilterTypeId" (change)="loadLeaveRequests()">
+              <option [ngValue]="null">All Leave Types</option>
+              @for (lt of leaveTypes(); track lt.id) {
+                <option [ngValue]="lt.id">{{ lt.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave Requests Table -->
+      <div class="corporate-card table-card">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Applicant</th>
+                <th>Leave Type</th>
+                <th>Date Range</th>
+                <th>Total Days</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Approver / Decision Note</th>
+                <th class="actions-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="8" class="loading-state">Loading leave applications...</td>
+                </tr>
+              } @else if (leaveRequests().length === 0) {
+                <tr>
+                  <td colspan="8" class="empty-state">No leave applications found in this view.</td>
+                </tr>
+              } @else {
+                @for (req of leaveRequests(); track req.id) {
+                  <tr>
+                    <td>
+                      <div class="employee-meta">
+                        <span class="emp-name">{{ req.employeeName }}</span>
+                        <span class="emp-code">{{ req.employeeCode }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="type-badge">{{ req.leaveTypeName }}</span>
+                    </td>
+                    <td class="date-range-cell">
+                      <span>{{ req.startDate }}</span>
+                      <span class="date-arrow">→</span>
+                      <span>{{ req.endDate }}</span>
+                    </td>
+                    <td class="days-cell">
+                      <span class="days-pill">{{ req.totalDays }} {{ req.totalDays === 1 ? 'day' : 'days' }}</span>
+                    </td>
+                    <td class="reason-cell" [title]="req.reason">{{ req.reason }}</td>
+                    <td>
+                      <span class="status-badge" [ngClass]="req.status.toLowerCase()">
+                        {{ req.status }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (req.status === 'APPROVED') {
+                        <div class="decision-meta success">
+                          <span>Approved by {{ req.approvedByName || 'Supervisor' }}</span>
+                        </div>
+                      } @else if (req.status === 'REJECTED') {
+                        <div class="decision-meta danger">
+                          <span class="reject-title">Rejected by {{ req.approvedByName || 'Supervisor' }}</span>
+                          <small class="reject-reason">"{{ req.rejectionReason }}"</small>
+                        </div>
+                      } @else if (req.status === 'CANCELLED') {
+                        <span class="text-muted">Cancelled by applicant</span>
+                      } @else {
+                        <span class="text-muted">Awaiting decision</span>
+                      }
+                    </td>
+                    <td class="actions-cell">
+                      @if (canApproveOrReject(req)) {
+                        <button class="btn-inline approve" (click)="approveLeave(req.id)">
+                          ✓ Approve
+                        </button>
+                        <button class="btn-inline reject" (click)="openRejectModal(req.id)">
+                          ✕ Reject
+                        </button>
+                      }
+                      @if (canCancel(req)) {
+                        <button class="btn-inline cancel" (click)="cancelLeave(req.id)">
+                          Cancel
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- TAB 3: LEAVE BALANCES & QUOTAS                                 -->
+  <!-- ============================================================== -->
+  @if (activeTab() === 'leave-balances') {
+    <div class="tab-content">
+      <!-- Employee Selector for Managers & Admins -->
+      @if (authService.isAdmin() || authService.isManager()) {
+        <div class="corporate-card filter-card">
+          <div class="form-group-inline">
+            <label><strong>Select Employee:</strong></label>
+            <select [ngModel]="selectedBalanceEmployeeId" (ngModelChange)="onBalanceEmployeeChange($event)">
+              @for (emp of employees(); track emp.id) {
+                <option [ngValue]="emp.id">{{ emp.fullName }} ({{ emp.employeeCode }}) - {{ emp.departmentName }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Balance Cards Grid -->
+      <div class="balances-grid">
+        @for (b of leaveBalances(); track b.leaveTypeId) {
+          <div class="corporate-card balance-card">
+            <div class="balance-card-header">
+              <h3 class="leave-name">{{ b.leaveTypeName }}</h3>
+              <span class="quota-badge">Annual: {{ b.annualAllocation }} Days</span>
+            </div>
+
+            <div class="balance-metrics">
+              <div class="metric">
+                <span class="metric-num remaining">{{ b.remainingDays }}</span>
+                <span class="metric-lbl">Remaining</span>
+              </div>
+              <div class="metric-divider"></div>
+              <div class="metric">
+                <span class="metric-num used">{{ b.usedDays }}</span>
+                <span class="metric-lbl">Consumed</span>
+              </div>
+            </div>
+
+            <!-- Visual Progress Bar -->
+            <div class="progress-bar-container">
+              <div
+                class="progress-bar-fill"
+                [style.width.%]="(b.usedDays / b.annualAllocation) * 100"
+                [class.warn]="(b.remainingDays <= 2)">
+              </div>
+            </div>
+            <div class="progress-label">
+              <span>{{ ((b.usedDays / b.annualAllocation) * 100) | number:'1.0-0' }}% utilized</span>
+              <span>{{ b.remainingDays }} available</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- TAB 4: LEAVE POLICIES / TYPES CATALOG                           -->
+  <!-- ============================================================== -->
+  @if (activeTab() === 'leave-types') {
+    <div class="tab-content">
+      <div class="section-actions-bar">
+        <div>
+          <h2 class="section-heading">Organizational Leave Allocations</h2>
+          <p class="section-subheading">Annual statutory entitlements and quota allowances per employee</p>
+        </div>
+        @if (authService.isAdmin()) {
+          <button class="btn-primary" (click)="openAddLeaveTypeModal()">
+            + Create Leave Type
+          </button>
+        }
+      </div>
+
+      <div class="corporate-card table-card">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Leave Category</th>
+                <th>Policy Description</th>
+                <th>Annual Quota</th>
+                <th>Status</th>
+                @if (authService.isAdmin()) {
+                  <th class="actions-header">Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (lt of leaveTypes(); track lt.id) {
+                <tr>
+                  <td><strong>{{ lt.name }}</strong></td>
+                  <td>{{ lt.description || 'Standard corporate leave quota' }}</td>
+                  <td>
+                    <span class="quota-pill">{{ lt.annualAllocation }} days / year</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" [class.present]="lt.isActive === 1" [class.absent]="lt.isActive === 0">
+                      {{ lt.isActive === 1 ? 'ACTIVE' : 'INACTIVE' }}
+                    </span>
+                  </td>
+                  @if (authService.isAdmin()) {
+                    <td class="actions-cell">
+                      <button class="btn-action edit" (click)="openEditLeaveTypeModal(lt)" title="Edit Quota">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                          <path d="M12 20h9"></path>
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action delete" (click)="deleteLeaveType(lt.id)" title="Deactivate">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                        </svg>
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- MODAL 1: APPLY FOR LEAVE                                       -->
+  <!-- ============================================================== -->
+  @if (showApplyLeaveModal()) {
+    <div class="modal-overlay" (click)="showApplyLeaveModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Apply for Leave</h3>
+          <button class="btn-modal-close" (click)="showApplyLeaveModal.set(false)">✕</button>
+        </div>
+
+        <form (ngSubmit)="submitLeaveRequest()">
+          <div class="modal-body">
+            @if (authService.isAdmin() || authService.isManager()) {
+              <div class="form-group">
+                <label>Applicant Employee *</label>
+                <select [(ngModel)]="applyLeaveForm.employeeId" name="employeeId" required>
+                  @for (emp of employees(); track emp.id) {
+                    <option [ngValue]="emp.id">{{ emp.fullName }} ({{ emp.employeeCode }})</option>
+                  }
+                </select>
+              </div>
+            }
+
+            <div class="form-group">
+              <label>Leave Type *</label>
+              <select [(ngModel)]="applyLeaveForm.leaveTypeId" name="leaveTypeId" required>
+                @for (lt of leaveTypes(); track lt.id) {
+                  <option [ngValue]="lt.id">{{ lt.name }} ({{ lt.annualAllocation }} days/yr)</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Start Date *</label>
+                <input type="date" [(ngModel)]="applyLeaveForm.startDate" name="startDate" required />
+              </div>
+              <div class="form-group half">
+                <label>End Date *</label>
+                <input type="date" [(ngModel)]="applyLeaveForm.endDate" name="endDate" required />
+              </div>
+            </div>
+
+            <div class="duration-preview">
+              <span>Requested Duration:</span>
+              <strong class="duration-highlight">
+                {{ calculatedLeaveDays() }} {{ calculatedLeaveDays() === 1 ? 'Calendar Day' : 'Calendar Days' }}
+              </strong>
+            </div>
+
+            <div class="form-group">
+              <label>Reason for Leave *</label>
+              <textarea
+                [(ngModel)]="applyLeaveForm.reason"
+                name="reason"
+                rows="3"
+                placeholder="State the purpose of your leave request..."
+                required>
+              </textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showApplyLeaveModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="calculatedLeaveDays() <= 0">Submit Application</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- MODAL 2: RECORD / EDIT ATTENDANCE                              -->
+  <!-- ============================================================== -->
+  @if (showAttendanceModal()) {
+    <div class="modal-overlay" (click)="showAttendanceModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ isEditingAttendance() ? 'Edit Attendance Record' : 'Record Attendance' }}</h3>
+          <button class="btn-modal-close" (click)="showAttendanceModal.set(false)">✕</button>
+        </div>
+
+        <form (ngSubmit)="saveAttendance()">
+          <div class="modal-body">
+            @if (!isEditingAttendance()) {
+              <div class="form-group">
+                <label>Employee *</label>
+                <select [(ngModel)]="attendanceForm.employeeId" name="employeeId" required>
+                  @for (emp of employees(); track emp.id) {
+                    <option [ngValue]="emp.id">{{ emp.fullName }} ({{ emp.employeeCode }})</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Date *</label>
+                <input type="date" [(ngModel)]="attendanceForm.attendanceDate" name="attendanceDate" required />
+              </div>
+            }
+
+            <div class="form-group">
+              <label>Status *</label>
+              <select [(ngModel)]="attendanceForm.status" name="status" required>
+                <option value="PRESENT">Present</option>
+                <option value="WORK_FROM_HOME">Work From Home</option>
+                <option value="HALF_DAY">Half Day</option>
+                <option value="ON_LEAVE">On Leave</option>
+                <option value="ABSENT">Absent</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half">
+                <label>Check-In Time (HH:mm)</label>
+                <input type="text" [(ngModel)]="attendanceForm.checkInTime" name="checkInTime" placeholder="09:00" />
+              </div>
+              <div class="form-group half">
+                <label>Check-Out Time (HH:mm)</label>
+                <input type="text" [(ngModel)]="attendanceForm.checkOutTime" name="checkOutTime" placeholder="17:30" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Remarks / Notes</label>
+              <input type="text" [(ngModel)]="attendanceForm.remarks" name="remarks" placeholder="Optional notes" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showAttendanceModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Save Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- MODAL 3: REJECTION REASON DIALOG                               -->
+  <!-- ============================================================== -->
+  @if (showRejectModal()) {
+    <div class="modal-overlay" (click)="showRejectModal.set(false)">
+      <div class="modal-card small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Reject Leave Request</h3>
+          <button class="btn-modal-close" (click)="showRejectModal.set(false)">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-prompt">Please specify a reason for rejecting this leave application. The employee will see this note.</p>
+          <div class="form-group">
+            <label>Rejection Reason *</label>
+            <textarea
+              [(ngModel)]="rejectionReasonInput"
+              rows="3"
+              placeholder="e.g. Critical project deadline, staffing coverage requirements..."
+              required>
+            </textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="showRejectModal.set(false)">Cancel</button>
+          <button type="button" class="btn-danger" (click)="confirmRejectLeave()" [disabled]="!rejectionReasonInput.trim()">
+            Confirm Rejection
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================== -->
+  <!-- MODAL 4: LEAVE TYPE POLICY (ADMIN)                             -->
+  <!-- ============================================================== -->
+  @if (showLeaveTypeModal()) {
+    <div class="modal-overlay" (click)="showLeaveTypeModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ isEditingLeaveType() ? 'Edit Leave Policy' : 'Create Leave Policy' }}</h3>
+          <button class="btn-modal-close" (click)="showLeaveTypeModal.set(false)">✕</button>
+        </div>
+
+        <form (ngSubmit)="saveLeaveType()">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Policy Name *</label>
+              <input type="text" [(ngModel)]="leaveTypeForm.name" name="name" placeholder="e.g. Maternity Leave" required />
+            </div>
+
+            <div class="form-group">
+              <label>Annual Allocation (Days) *</label>
+              <input type="number" [(ngModel)]="leaveTypeForm.annualAllocation" name="annualAllocation" min="1" required />
+            </div>
+
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="leaveTypeForm.description" name="description" rows="2" placeholder="Policy guidelines and eligibility"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select [(ngModel)]="leaveTypeForm.isActive" name="isActive">
+                <option [ngValue]="1">Active</option>
+                <option [ngValue]="0">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showLeaveTypeModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Save Policy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

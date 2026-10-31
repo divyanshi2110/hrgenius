@@ -1,0 +1,612 @@
+<div class="payroll-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Payroll & Compensation</h1>
+      <p class="page-subtitle">Monthly compensation processing, salary structures, and official employee payslips</p>
+    </div>
+    <div class="header-right">
+      @if (authService.isAdmin()) {
+        <button class="btn-primary" (click)="setTab('process')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Run Monthly Payroll
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Feedback Alert -->
+  @if (feedbackMessage()) {
+    <div class="alert" [ngClass]="feedbackMessage()!.type">
+      <span>{{ feedbackMessage()!.text }}</span>
+      <button class="alert-close" (click)="feedbackMessage.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- Executive Summary Metrics (For Admins and Managers) -->
+  @if (authService.isAdmin() || authService.isManager()) {
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Disbursed (Paid)</span>
+        <span class="metric-value">₹ {{ totalDisbursed() | number:'1.2-2' }}</span>
+        <span class="metric-meta">Disbursed via Direct Bank Transfer</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Pending Disbursement</span>
+        <span class="metric-value text-warning">₹ {{ totalPending() | number:'1.2-2' }}</span>
+        <span class="metric-meta">Awaiting disbursement approval</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Payroll Records</span>
+        <span class="metric-value">{{ totalRecordsCount() }}</span>
+        <span class="metric-meta">Active compensation statements</span>
+      </div>
+    </div>
+  }
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'records'" 
+      (click)="setTab('records')"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+      @if (authService.isAdmin() || authService.isManager()) {
+        <span>Payroll Register & Payslips</span>
+      } @else {
+        <span>My Salary Slips</span>
+      }
+    </button>
+
+    @if (authService.isAdmin()) {
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'process'" 
+        (click)="setTab('process')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Process Payroll Engine</span>
+      </button>
+
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'structures'" 
+        (click)="setTab('structures')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-icon">
+          <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+          <line x1="6" y1="8" x2="6" y2="8"></line>
+          <line x1="10" y1="8" x2="18" y2="8"></line>
+          <line x1="6" y1="12" x2="6" y2="12"></line>
+          <line x1="10" y1="12" x2="18" y2="12"></line>
+          <line x1="6" y1="16" x2="6" y2="16"></line>
+          <line x1="10" y1="16" x2="18" y2="16"></line>
+        </svg>
+        <span>Salary Structures (CTC)</span>
+      </button>
+    }
+  </div>
+
+  <!-- TAB 1: PAYROLL RECORDS & PAYSLIPS -->
+  @if (activeTab() === 'records') {
+    <div class="tab-content">
+      <!-- Search & Filters -->
+      <div class="filters-bar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            placeholder="Search by employee, code, or department..." 
+            [(ngModel)]="searchKeyword" 
+            class="form-input search-input"
+          />
+        </div>
+
+        @if (authService.isAdmin() || authService.isManager()) {
+          <div class="filter-group">
+            <select [(ngModel)]="filterMonth" (change)="loadPayrolls()" class="form-select">
+              <option [ngValue]="null">All Months</option>
+              @for (m of months; track m.value) {
+                <option [ngValue]="m.value">{{ m.name }}</option>
+              }
+            </select>
+
+            <select [(ngModel)]="filterYear" (change)="loadPayrolls()" class="form-select">
+              <option [ngValue]="2026">2026</option>
+              <option [ngValue]="2025">2025</option>
+            </select>
+
+            <select [(ngModel)]="filterStatus" (change)="loadPayrolls()" class="form-select">
+              <option value="">All Statuses</option>
+              <option value="GENERATED">Generated</option>
+              <option value="PAID">Paid</option>
+              <option value="DRAFT">Draft</option>
+            </select>
+          </div>
+        }
+      </div>
+
+      <!-- Payroll Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Payroll Code</th>
+              <th>Employee</th>
+              <th>Period</th>
+              <th>Work Days</th>
+              <th>Gross Salary</th>
+              <th>Deductions</th>
+              <th>Net Pay</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="9" class="loading-state">Loading payroll records...</td>
+              </tr>
+            } @else if (filteredPayrolls().length === 0) {
+              <tr>
+                <td colspan="9" class="empty-state">No payroll statements found matching the selected filters.</td>
+              </tr>
+            } @else {
+              @for (record of filteredPayrolls(); track record.id) {
+                <tr>
+                  <td class="font-mono text-muted">{{ record.payrollCode }}</td>
+                  <td>
+                    <div class="emp-cell">
+                      <span class="emp-name">{{ record.employeeName }}</span>
+                      <span class="emp-sub">{{ record.employeeCode }} &bull; {{ record.departmentName }}</span>
+                    </div>
+                  </td>
+                  <td>{{ getMonthName(record.payMonth) }} {{ record.payYear }}</td>
+                  <td>
+                    <span class="badge-neutral">{{ record.paidDays }} / {{ record.totalWorkingDays }}</span>
+                    @if (record.lopDays > 0) {
+                      <span class="badge-lop">LOP: {{ record.lopDays }}</span>
+                    }
+                  </td>
+                  <td class="font-numeric">₹ {{ record.grossSalary | number:'1.2-2' }}</td>
+                  <td class="font-numeric text-danger">-₹ {{ record.totalDeductions | number:'1.2-2' }}</td>
+                  <td class="font-numeric font-bold text-success">₹ {{ record.netSalary | number:'1.2-2' }}</td>
+                  <td>
+                    <span 
+                      class="status-badge" 
+                      [ngClass]="record.status.toLowerCase()"
+                    >
+                      {{ record.status }}
+                    </span>
+                  </td>
+                  <td class="text-right actions-cell">
+                    <button class="btn-action view-btn" (click)="openPayslip(record)" title="View and Print Payslip">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-icon">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      View Payslip
+                    </button>
+
+                    @if (authService.isAdmin() && record.status !== 'PAID') {
+                      <button class="btn-action pay-btn" (click)="markAsPaid(record.id)" title="Confirm bank disbursement">
+                        Disburse
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: PROCESS PAYROLL (ADMIN) -->
+  @if (activeTab() === 'process' && authService.isAdmin()) {
+    <div class="tab-content">
+      <div class="process-card">
+        <div class="card-header">
+          <h2 class="card-title">Run Monthly Payroll Batch</h2>
+          <p class="card-subtitle">Calculate gross earnings, statutory deductions (EPF, PT, TDS), attendance Loss of Pay (LOP), and generate net pay.</p>
+        </div>
+
+        <form (ngSubmit)="processPayroll()" class="process-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Select Target Employee(s)</label>
+              <select [(ngModel)]="processEmployeeId" name="processEmployeeId" class="form-select">
+                <option [ngValue]="null">All Active Employees (Bulk Process)</option>
+                @for (emp of employees(); track emp.id) {
+                  <option [ngValue]="emp.id">{{ emp.employeeCode }} - {{ emp.fullName }} ({{ emp.departmentName }})</option>
+                }
+              </select>
+              <span class="field-hint">Leave as 'All Active Employees' to calculate company-wide payroll.</span>
+            </div>
+
+            <div class="form-group">
+              <label>Pay Month</label>
+              <select [(ngModel)]="processMonth" name="processMonth" class="form-select" required>
+                @for (m of months; track m.value) {
+                  <option [ngValue]="m.value">{{ m.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Pay Year</label>
+              <select [(ngModel)]="processYear" name="processYear" class="form-select" required>
+                <option [ngValue]="2026">2026</option>
+                <option [ngValue]="2025">2025</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Total Working Days in Month</label>
+              <input 
+                type="number" 
+                [(ngModel)]="processDays" 
+                name="processDays" 
+                class="form-input" 
+                min="20" 
+                max="31" 
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Loss of Pay (LOP) Days (Optional Override)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="processLopDays" 
+                name="processLopDays" 
+                class="form-input" 
+                min="0" 
+                max="31" 
+                step="0.5" 
+                placeholder="0"
+              />
+              <span class="field-hint">Unpaid leaves will automatically deduct proportional daily salary.</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="isProcessing()">
+              @if (isProcessing()) {
+                <span>Processing calculations...</span>
+              } @else {
+                <span>Calculate & Generate Payroll</span>
+              }
+            </button>
+            <button type="button" class="btn-secondary" (click)="setTab('records')">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: SALARY STRUCTURES (ADMIN) -->
+  @if (activeTab() === 'structures' && authService.isAdmin()) {
+    <div class="tab-content">
+      <div class="structures-header">
+        <div>
+          <h2 class="section-title">Employee Salary Structures (Cost to Company)</h2>
+          <p class="section-subtitle">Define monthly base salary, allowances, and statutory deduction parameters per employee.</p>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Basic Salary</th>
+              <th>HRA</th>
+              <th>Allowances</th>
+              <th>Gross CTC</th>
+              <th>Statutory Ded. (PF+PT)</th>
+              <th>TDS</th>
+              <th>Net Take-Home</th>
+              <th>Bank / PAN</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (struct of salaryStructures(); track struct.id) {
+              <tr>
+                <td>
+                  <div class="emp-cell">
+                    <span class="emp-name">{{ struct.employeeName }}</span>
+                    <span class="emp-sub">{{ struct.employeeCode }} &bull; {{ struct.designationTitle }}</span>
+                  </div>
+                </td>
+                <td class="font-numeric">₹ {{ struct.basicSalary | number:'1.2-2' }}</td>
+                <td class="font-numeric">₹ {{ struct.hra | number:'1.2-2' }}</td>
+                <td class="font-numeric">₹ {{ (struct.specialAllowance + struct.conveyanceAllowance) | number:'1.2-2' }}</td>
+                <td class="font-numeric font-bold">₹ {{ struct.grossSalary | number:'1.2-2' }}</td>
+                <td class="font-numeric text-danger">₹ {{ (struct.epfDeduction + struct.professionalTax) | number:'1.2-2' }}</td>
+                <td class="font-numeric text-danger">₹ {{ struct.tdsDeduction | number:'1.2-2' }}</td>
+                <td class="font-numeric font-bold text-success">₹ {{ struct.netSalary | number:'1.2-2' }}</td>
+                <td>
+                  <span class="font-mono text-muted text-sm">{{ struct.bankName || 'Not Set' }}</span>
+                  <div class="text-subtle text-xs">{{ struct.panNumber || 'No PAN' }}</div>
+                </td>
+                <td class="text-right">
+                  <button class="btn-action edit-btn" (click)="openEditStructure(struct)">
+                    Configure
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ======================================================== -->
+  <!-- MODAL: EXECUTIVE PRINTABLE PAYSLIP                      -->
+  <!-- ======================================================== -->
+  @if (isPayslipOpen() && selectedPayroll()) {
+    <div class="modal-backdrop" (click)="closePayslip()">
+      <div class="modal-box payslip-modal-box" (click)="$event.stopPropagation()">
+        
+        <!-- Modal Toolbar (Hidden during Print) -->
+        <div class="modal-toolbar no-print">
+          <div class="toolbar-left">
+            <span class="toolbar-title">Corporate Salary Statement</span>
+            <span class="toolbar-badge">{{ selectedPayroll()!.payrollCode }}</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn-primary btn-print" (click)="printPayslip()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Print / Save PDF
+            </button>
+            <button class="btn-close" (click)="closePayslip()">&times;</button>
+          </div>
+        </div>
+
+        <!-- Printable Document Canvas -->
+        <div class="payslip-document" id="printable-payslip">
+          <!-- Letterhead -->
+          <div class="letterhead">
+            <div class="company-brand">
+              <div class="brand-square">HRG</div>
+              <div class="company-text">
+                <h2 class="company-name">HRGENIUS ENTERPRISE SOLUTIONS PRIVATE LIMITED</h2>
+                <p class="company-address">Tower 4, DLF Cyber City, Phase II, Sector 24, Gurugram, Haryana - 122002</p>
+                <p class="company-cin">CIN: U72200HR2024PTC123456 &bull; GSTIN: 06AAACH1234F1Z8</p>
+              </div>
+            </div>
+            <div class="slip-title-badge">
+              <span class="slip-title">PAYSLIP FOR {{ getMonthName(selectedPayroll()!.payMonth) | uppercase }} {{ selectedPayroll()!.payYear }}</span>
+              <span class="slip-type">Private & Confidential</span>
+            </div>
+          </div>
+
+          <!-- Employee Details Grid -->
+          <div class="details-section">
+            <table class="details-grid">
+              <tr>
+                <td class="d-label">Employee Code:</td>
+                <td class="d-value font-bold">{{ selectedPayroll()!.employeeCode }}</td>
+                <td class="d-label">Department:</td>
+                <td class="d-value">{{ selectedPayroll()!.departmentName }}</td>
+              </tr>
+              <tr>
+                <td class="d-label">Employee Name:</td>
+                <td class="d-value font-bold">{{ selectedPayroll()!.employeeName }}</td>
+                <td class="d-label">Designation:</td>
+                <td class="d-value">{{ selectedPayroll()!.designationTitle }}</td>
+              </tr>
+              <tr>
+                <td class="d-label">PAN Number:</td>
+                <td class="d-value font-mono">{{ selectedPayroll()!.panNumber || 'N/A' }}</td>
+                <td class="d-label">Bank Name:</td>
+                <td class="d-value">{{ selectedPayroll()!.bankName || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="d-label">Bank Account:</td>
+                <td class="d-value font-mono">{{ selectedPayroll()!.bankAccountNo || 'N/A' }}</td>
+                <td class="d-label">Bank IFSC:</td>
+                <td class="d-value font-mono">{{ selectedPayroll()!.bankIfsc || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="d-label">Total Days:</td>
+                <td class="d-value">{{ selectedPayroll()!.totalWorkingDays }}</td>
+                <td class="d-label">Paid / LOP Days:</td>
+                <td class="d-value">{{ selectedPayroll()!.paidDays }} Paid / {{ selectedPayroll()!.lopDays }} LOP</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Earnings vs Deductions Table -->
+          <div class="breakdown-section">
+            <table class="breakdown-table">
+              <thead>
+                <tr>
+                  <th class="w-half">EARNINGS</th>
+                  <th class="text-right">AMOUNT (INR)</th>
+                  <th class="w-half border-left">DEDUCTIONS</th>
+                  <th class="text-right">AMOUNT (INR)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Basic Salary</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.basicSalary | number:'1.2-2' }}</td>
+                  <td class="border-left">Employee Provident Fund (EPF)</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.epfDeduction | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td>House Rent Allowance (HRA)</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.hra | number:'1.2-2' }}</td>
+                  <td class="border-left">Professional Tax (PT)</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.professionalTax | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td>Special Allowance</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.specialAllowance | number:'1.2-2' }}</td>
+                  <td class="border-left">Tax Deducted at Source (TDS)</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.tdsDeduction | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td>Conveyance Allowance</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.conveyanceAllowance | number:'1.2-2' }}</td>
+                  <td class="border-left">Loss of Pay (LOP Deduction)</td>
+                  <td class="text-right font-numeric">{{ selectedPayroll()!.lopDeduction | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td class="font-bold">Total Gross Earnings</td>
+                  <td class="text-right font-numeric font-bold">₹ {{ selectedPayroll()!.grossSalary | number:'1.2-2' }}</td>
+                  <td class="border-left font-bold">Total Deductions</td>
+                  <td class="text-right font-numeric font-bold text-danger">₹ {{ selectedPayroll()!.totalDeductions | number:'1.2-2' }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Net Pay Statement -->
+          <div class="net-pay-banner">
+            <div class="net-pay-left">
+              <span class="net-title">NET AMOUNT PAYABLE</span>
+              <span class="net-words">{{ selectedPayroll()!.netSalaryInWords }}</span>
+            </div>
+            <div class="net-pay-right">
+              <span class="net-amount">₹ {{ selectedPayroll()!.netSalary | number:'1.2-2' }}</span>
+              <span class="net-status-tag">Status: {{ selectedPayroll()!.status }}</span>
+            </div>
+          </div>
+
+          <!-- Payslip Footnote -->
+          <div class="payslip-footer">
+            <p class="footer-note">Note: This is a system-generated compensation statement issued by HRGenius Enterprise and does not require a physical signature.</p>
+            <div class="signatures-row">
+              <div class="sign-block">
+                <span class="sign-line"></span>
+                <span class="sign-label">Prepared by (Payroll)</span>
+              </div>
+              <div class="sign-block">
+                <span class="sign-line"></span>
+                <span class="sign-label">Authorized Signatory (HR)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ======================================================== -->
+  <!-- MODAL: EDIT / CONFIGURE SALARY STRUCTURE                 -->
+  <!-- ======================================================== -->
+  @if (isStructureModalOpen()) {
+    <div class="modal-backdrop" (click)="closeStructureModal()">
+      <div class="modal-box form-modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Configure Salary Structure</h2>
+            <p class="modal-subtitle">{{ selectedEmployeeName() }}</p>
+          </div>
+          <button class="btn-close" (click)="closeStructureModal()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="saveStructure()" class="modal-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Basic Salary (Monthly ₹)*</label>
+              <input type="number" [(ngModel)]="structureForm().basicSalary" name="basicSalary" class="form-input" required min="1000" />
+            </div>
+            <div class="form-group">
+              <label>House Rent Allowance (HRA ₹)*</label>
+              <input type="number" [(ngModel)]="structureForm().hra" name="hra" class="form-input" required min="0" />
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Special Allowance (₹)</label>
+              <input type="number" [(ngModel)]="structureForm().specialAllowance" name="specialAllowance" class="form-input" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Conveyance Allowance (₹)</label>
+              <input type="number" [(ngModel)]="structureForm().conveyanceAllowance" name="conveyanceAllowance" class="form-input" min="0" />
+            </div>
+          </div>
+
+          <div class="form-divider">Statutory Deductions</div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>EPF Deduction (₹)</label>
+              <input type="number" [(ngModel)]="structureForm().epfDeduction" name="epfDeduction" class="form-input" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Professional Tax (PT ₹)</label>
+              <input type="number" [(ngModel)]="structureForm().professionalTax" name="professionalTax" class="form-input" min="0" />
+            </div>
+            <div class="form-group">
+              <label>TDS (Monthly Tax ₹)</label>
+              <input type="number" [(ngModel)]="structureForm().tdsDeduction" name="tdsDeduction" class="form-input" min="0" />
+            </div>
+          </div>
+
+          <div class="form-divider">Banking & Tax Identifiers</div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Bank Name</label>
+              <input type="text" [(ngModel)]="structureForm().bankName" name="bankName" class="form-input" placeholder="e.g. HDFC Bank" />
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" [(ngModel)]="structureForm().bankAccountNo" name="bankAccountNo" class="form-input" placeholder="e.g. 50100..." />
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>IFSC Code</label>
+              <input type="text" [(ngModel)]="structureForm().bankIfsc" name="bankIfsc" class="form-input" placeholder="e.g. HDFC0001234" />
+            </div>
+            <div class="form-group">
+              <label>PAN Number</label>
+              <input type="text" [(ngModel)]="structureForm().panNumber" name="panNumber" class="form-input" placeholder="e.g. ABCDE1234F" />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn-primary">Save Salary Structure</button>
+            <button type="button" class="btn-secondary" (click)="closeStructureModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

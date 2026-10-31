@@ -1,0 +1,112 @@
+<div class="login-wrapper">
+  <!-- Rounded Frame Matching Screenshot -->
+  <div class="login-frame">
+    
+    <!-- LEFT PANEL: Only the animated illustration -->
+    <div class="left-panel">
+      <div class="illustration-container">
+        <img 
+          src="/login-illustration.png" 
+          alt="Workplace Illustration" 
+          class="illustration-img"
+        />
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Clean Sign In Form -->
+    <div class="right-panel">
+      <div class="form-header">
+        <h1 class="form-title">Sign In to your account</h1>
+      </div>
+
+      <!-- Error Alert -->
+      @if (errorMessage()) {
+        <div class="alert alert-danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="alert-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Form Inputs -->
+      <form (ngSubmit)="handleLogin()" class="auth-form">
+        <div class="field-group">
+          <label class="field-label">Email or Username</label>
+          <input 
+            type="text" 
+            class="field-input" 
+            [(ngModel)]="username" 
+            name="username" 
+            placeholder="Enter email or username" 
+            required
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-with-eye">
+            <input 
+              [type]="showPassword() ? 'text' : 'password'" 
+              class="field-input pr-eye" 
+              [(ngModel)]="password" 
+              name="password" 
+              placeholder="Enter password" 
+              required
+            />
+            <button 
+              type="button" 
+              class="eye-btn" 
+              (click)="togglePasswordVisibility()" 
+              [title]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-icon">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-icon">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="3" r="3"></circle>
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary Brand Blue Sign In Button -->
+        <button 
+          type="submit" 
+          class="btn-submit" 
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <span>SIGNING IN...</span>
+          } @else {
+            <span>SIGN IN</span>
+          }
+        </button>
+      </form>
+
+      <!-- Quick Role Selector (Admin, Manager, Employee) -->
+      <div class="demo-bar">
+        <span class="demo-title">Quick Role Login:</span>
+        <div class="demo-chips">
+          <button type="button" class="chip chip-admin" (click)="fillDemo('admin', 'Admin@123')">
+            Admin
+          </button>
+          <button type="button" class="chip chip-mgr" (click)="fillDemo('manager', 'Manager@123')">
+            Manager
+          </button>
+          <button type="button" class="chip chip-emp" (click)="fillDemo('employee', 'Employee@123')">
+            Employee
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

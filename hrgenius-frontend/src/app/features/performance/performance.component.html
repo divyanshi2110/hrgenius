@@ -1,0 +1,356 @@
+<div class="performance-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumbs">Talent & Governance / Performance Management</div>
+      <h1 class="page-title">Performance Management System (PMS)</h1>
+      <p class="page-subtitle">Track organizational OKRs, 360-degree appraisal cycles, and leadership talent calibration</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="showNewGoalModal.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Strategic OKR
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">CURRENT EVALUATION CYCLE</span>
+        <div class="metric-icon-box blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">Annual 2026</div>
+      <div class="metric-footer">Cycle closes on Dec 31, 2026</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">APPRAISAL COMPLETION</span>
+        <div class="metric-icon-box green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">80% Logged</div>
+      <div class="metric-footer">13 of 16 scorecards signed off</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">ORGANIZATION AVG RATING</span>
+        <div class="metric-icon-box amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">4.62 / 5.0</div>
+      <div class="metric-footer">High workforce capability benchmark</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">PROMOTION ELIGIBLE</span>
+        <div class="metric-icon-box purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">3 Leaders</div>
+      <div class="metric-footer">Recommended for Band Advancement</div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab() === 'goals'" (click)="activeTab.set('goals')">
+      Strategic OKRs & Goals ({{ goals().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'scorecards'" (click)="activeTab.set('scorecards')">
+      360° Evaluation Scorecards ({{ scorecards().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'appraisal'" (click)="activeTab.set('appraisal')">
+      Appraisal Cycle Workflow
+    </button>
+  </div>
+
+  <!-- TAB 1: STRATEGIC GOALS -->
+  @if (activeTab() === 'goals') {
+    <div class="goals-grid">
+      @for (goal of filteredGoals; track goal.id) {
+        <div class="corporate-card goal-card">
+          <div class="goal-header">
+            <span class="category-pill">{{ goal.category }}</span>
+            <span class="status-badge" [class.on-track]="goal.status === 'ON_TRACK'" [class.at-risk]="goal.status === 'AT_RISK'" [class.achieved]="goal.status === 'ACHIEVED'">
+              {{ goal.status }}
+            </span>
+          </div>
+
+          <h3 class="goal-title">{{ goal.title }}</h3>
+          <p class="goal-kr">{{ goal.keyResults }}</p>
+
+          <div class="goal-meta-row">
+            <div>
+              <span class="meta-label">Owner</span>
+              <span class="meta-val">{{ goal.owner }}</span>
+            </div>
+            <div>
+              <span class="meta-label">Department</span>
+              <span class="meta-val">{{ goal.department }}</span>
+            </div>
+            <div>
+              <span class="meta-label">Target Date</span>
+              <span class="meta-val">{{ goal.targetDate }}</span>
+            </div>
+          </div>
+
+          <div class="goal-progress-section">
+            <div class="progress-bar-wrap">
+              <div class="progress-label-bar">
+                <span>Milestone Progress</span>
+                <strong>{{ goal.progressPercent }}%</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="goal.progressPercent"></div>
+              </div>
+            </div>
+
+            <div class="progress-actions">
+              <button class="btn-step" (click)="updateGoalProgress(goal, -5)">-5%</button>
+              <button class="btn-step" (click)="updateGoalProgress(goal, 5)">+5%</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TAB 2: 360 EVALUATION SCORECARDS -->
+  @if (activeTab() === 'scorecards') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="toolbar-title">Appraisal Scorecards Register</div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>EMPLOYEE CODE & NAME</th>
+              <th>DEPARTMENT & DESIGNATION</th>
+              <th>MANAGER</th>
+              <th>SELF RATING</th>
+              <th>MGR RATING</th>
+              <th>FINAL CALIBRATED</th>
+              <th>PROMOTION</th>
+              <th>STATUS</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sc of scorecards(); track sc.id) {
+              <tr>
+                <td>
+                  <strong>{{ sc.employeeName }}</strong>
+                  <div class="code-sub">{{ sc.employeeCode }}</div>
+                </td>
+                <td>
+                  <div class="role-box">
+                    <span class="role-text">{{ sc.designation }}</span>
+                    <span class="dept-text">{{ sc.department }}</span>
+                  </div>
+                </td>
+                <td>{{ sc.manager }}</td>
+                <td><span class="rating-box">{{ sc.selfRating }}</span></td>
+                <td><span class="rating-box">{{ sc.managerRating }}</span></td>
+                <td>
+                  <span class="final-score-pill">★ {{ sc.finalRating }}</span>
+                </td>
+                <td>
+                  @if (sc.promotionEligible) {
+                    <span class="badge badge-success">YES</span>
+                  } @else {
+                    <span class="badge badge-subtle">STANDARD</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge" [class.badge-success]="sc.reviewStatus === 'COMPLETED'" [class.badge-warning]="sc.reviewStatus === 'CALIBRATION'">
+                    {{ sc.reviewStatus }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <button class="action-btn" (click)="viewScorecard(sc)">
+                    View Scorecard
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: APPRAISAL WORKFLOW -->
+  @if (activeTab() === 'appraisal') {
+    <div class="workflow-card">
+      <h2 class="workflow-heading">Annual 2026 Appraisal Lifecycle</h2>
+      <p class="workflow-desc">Standard corporate multi-step performance review and compensation calibration workflow.</p>
+
+      <div class="stages-track">
+        <div class="stage-step done">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <span class="step-title">Goal Setting & OKRs</span>
+            <span class="step-meta">Completed Sep 15</span>
+          </div>
+        </div>
+
+        <div class="stage-step done">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <span class="step-title">Self-Evaluation</span>
+            <span class="step-meta">Completed Oct 15</span>
+          </div>
+        </div>
+
+        <div class="stage-step active">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <span class="step-title">Manager Assessment</span>
+            <span class="step-meta">In Progress (Closing Nov 15)</span>
+          </div>
+        </div>
+
+        <div class="stage-step pending">
+          <div class="step-num">4</div>
+          <div class="step-info">
+            <span class="step-title">HR Calibration & 9-Box</span>
+            <span class="step-meta">Scheduled Dec 1 - 10</span>
+          </div>
+        </div>
+
+        <div class="stage-step pending">
+          <div class="step-num">5</div>
+          <div class="step-info">
+            <span class="step-title">Compensation Revision</span>
+            <span class="step-meta">Effective Jan 1, 2027</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: SCORECARD DETAILS -->
+  @if (selectedScorecard(); as sc) {
+    <div class="modal-backdrop" (click)="closeScorecard()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">{{ sc.employeeName }} ({{ sc.employeeCode }})</h2>
+            <p class="modal-subtitle">{{ sc.designation }} · {{ sc.department }}</p>
+          </div>
+          <button class="btn-close" (click)="closeScorecard()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="scores-bar">
+            <div class="score-card-pill">
+              <span class="lbl">Technical Excellence</span>
+              <span class="num">{{ sc.technicalCompetence }} / 5.0</span>
+            </div>
+            <div class="score-card-pill">
+              <span class="lbl">Leadership & Culture</span>
+              <span class="num">{{ sc.leadershipValues }} / 5.0</span>
+            </div>
+            <div class="score-card-pill">
+              <span class="lbl">Delivery Consistency</span>
+              <span class="num">{{ sc.deliveryConsistency }} / 5.0</span>
+            </div>
+          </div>
+
+          <div class="comment-box">
+            <span class="comment-label">Executive Manager Appraisal Commentary:</span>
+            <p class="comment-text">{{ sc.managerComments }}</p>
+          </div>
+
+          <div class="rec-banner" [class.promoted]="sc.promotionEligible">
+            <strong>Merit Recommendation: </strong>
+            {{ sc.promotionEligible ? 'Candidate recommended for corporate Band Level promotion and accelerated merit increment.' : 'Standard satisfactory performance with cost-of-living increment band.' }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeScorecard()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: NEW STRATEGIC GOAL -->
+  @if (showNewGoalModal()) {
+    <div class="modal-backdrop" (click)="showNewGoalModal.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Create Strategic OKR / Goal</h2>
+            <p class="modal-subtitle">Define departmental target and key measurable results</p>
+          </div>
+          <button class="btn-close" (click)="showNewGoalModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Goal Objective / Title *</label>
+            <input type="text" [(ngModel)]="newGoal.title" class="form-input" placeholder="e.g. Implement Zero Trust Security Architecture" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category *</label>
+              <select [(ngModel)]="newGoal.category" class="form-input">
+                <option value="ENGINEERING">Software Engineering</option>
+                <option value="OPERATIONS">Operations & Cloud</option>
+                <option value="PRODUCT">Product & UX</option>
+                <option value="SALES">Sales & Business</option>
+                <option value="LEADERSHIP">Leadership & Culture</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Weightage (%)</label>
+              <input type="number" [(ngModel)]="newGoal.weight" class="form-input" min="10" max="100" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Objective Owner *</label>
+              <input type="text" [(ngModel)]="newGoal.owner" class="form-input" placeholder="e.g. Priya Sharma" />
+            </div>
+            <div class="form-group">
+              <label>Target Completion Date</label>
+              <input type="date" [(ngModel)]="newGoal.targetDate" class="form-input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Key Measurable Results (KRs)</label>
+            <textarea [(ngModel)]="newGoal.keyResults" rows="3" class="form-input" placeholder="Detail 2-3 specific measurable outcomes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showNewGoalModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="createGoal()">Publish Strategic Goal</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,42 @@
+<div class="placeholder-page">
+  <div class="page-top">
+    <div class="breadcrumbs">Enterprise Portal / Modules / {{ moduleTitle() }}</div>
+    <h1 class="page-title">{{ moduleTitle() }}</h1>
+    <p class="page-subtitle">{{ moduleDescription() }}</p>
+  </div>
+
+  <div class="corporate-card placeholder-card">
+    <div class="card-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </div>
+    <h2 class="card-title">{{ moduleTitle() }} Module Foundation</h2>
+    <p class="card-desc">
+      The architecture, entity relationships, and REST API contract for this module are approved in the HRGenius blueprint.
+    </p>
+
+    <div class="status-pill">
+      <span class="dot"></span>
+      Scheduled Implementation: <strong>{{ modulePhase() }}</strong>
+    </div>
+
+    <div class="features-summary">
+      <span class="summary-label">Module Architectural Scope:</span>
+      <div class="spec-grid">
+        <div class="spec-item">
+          <span class="spec-name">Backend Entity Mappings</span>
+          <span class="spec-val">Spring Data JPA + Oracle Dialect</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-name">Access Control</span>
+          <span class="spec-val">RBAC Method Security (Spring Security)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-name">Frontend UI</span>
+          <span class="spec-val">Angular Material / Corporate Tables</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

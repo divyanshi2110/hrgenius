@@ -1,0 +1,568 @@
+<div class="employees-page">
+  <!-- Page Header -->
+  <div class="page-top">
+    <div>
+      <div class="breadcrumbs">Enterprise Portal / Core HR / Directory</div>
+      <h1 class="page-title">Employee Management</h1>
+      <p class="page-subtitle">Organizational directory, reporting hierarchy, departments and designations</p>
+    </div>
+    <div class="header-actions">
+      @if (authService.isAdmin()) {
+        <button class="btn-primary" (click)="openAddEmployee()">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+          </svg>
+          Add New Employee
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Alert Notifications -->
+  @if (alertMessage(); as alert) {
+    <div class="corporate-alert" [class.success]="alert.type === 'success'" [class.danger]="alert.type === 'danger'">
+      <span>{{ alert.text }}</span>
+      <button class="close-btn" (click)="alertMessage.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- View Switcher Tabs -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'directory'" 
+      (click)="activeTab.set('directory')"
+    >
+      Workforce Directory ({{ employees().length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'departments'" 
+      (click)="activeTab.set('departments')"
+    >
+      Departments ({{ departments().length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'designations'" 
+      (click)="activeTab.set('designations')"
+    >
+      Designations ({{ designations().length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: WORKFORCE DIRECTORY -->
+  @if (activeTab() === 'directory') {
+    <div class="corporate-card filter-toolbar">
+      <div class="search-box">
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+        </svg>
+        <input 
+          type="text" 
+          class="form-input" 
+          placeholder="Search by name, EMP code, or email..." 
+          [(ngModel)]="searchKeyword" 
+          (keyup.enter)="onFilterChange()"
+        />
+      </div>
+
+      <div class="filter-controls">
+        <select class="form-input" [(ngModel)]="selectedDeptId" (change)="onFilterChange()">
+          <option [ngValue]="null">All Departments</option>
+          @for (dept of departments(); track dept.id) {
+            <option [ngValue]="dept.id">{{ dept.deptName }} ({{ dept.deptCode }})</option>
+          }
+        </select>
+
+        <select class="form-input" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">Active Only</option>
+          <option value="INACTIVE">Inactive Only</option>
+        </select>
+
+        <button class="btn-secondary" (click)="onFilterChange()" title="Apply search">
+          Filter
+        </button>
+        <button class="btn-secondary" (click)="resetFilters()" title="Reset all filters">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="corporate-card table-card">
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>Employee Code</th>
+              <th>Full Name</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th>Reporting Manager</th>
+              <th>Hire Date</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="8" class="loading-cell">Loading employee records from Oracle DB...</td>
+              </tr>
+            } @else if (employees().length === 0) {
+              <tr>
+                <td colspan="8" class="empty-cell">No employees matching search criteria found.</td>
+              </tr>
+            } @else {
+              @for (emp of employees(); track emp.id) {
+                <tr>
+                  <td class="emp-code">
+                    <span class="code-badge">{{ emp.employeeCode }}</span>
+                  </td>
+                  <td>
+                    <div class="name-col">
+                      <span class="full-name">{{ emp.fullName }}</span>
+                      <span class="email-sub">{{ emp.email }}</span>
+                    </div>
+                  </td>
+                  <td>{{ emp.departmentName || '—' }}</td>
+                  <td>
+                    <span class="desig-pill">{{ emp.designationTitle || '—' }}</span>
+                  </td>
+                  <td>
+                    @if (emp.managerName) {
+                      <div class="manager-col">
+                        <span class="mgr-name">{{ emp.managerName }}</span>
+                        <span class="mgr-code">({{ emp.managerEmployeeCode }})</span>
+                      </div>
+                    } @else {
+                      <span class="text-muted">Top Executive</span>
+                    }
+                  </td>
+                  <td>{{ emp.hireDate }}</td>
+                  <td>
+                    <span class="corporate-badge" [class.success]="emp.status === 'ACTIVE'" [class.danger]="emp.status === 'INACTIVE'">
+                      {{ emp.status }}
+                    </span>
+                  </td>
+                  <td class="text-right actions-col">
+                    <button class="action-link" (click)="viewProfile(emp)" title="View 360° Profile">
+                      Profile
+                    </button>
+                    @if (authService.isAdmin()) {
+                      <button class="action-link" (click)="openEditEmployee(emp)" title="Edit employee">
+                        Edit
+                      </button>
+                      <button 
+                        class="action-link danger" 
+                        (click)="toggleStatus(emp)" 
+                        [title]="emp.status === 'ACTIVE' ? 'Deactivate employee' : 'Activate employee'"
+                      >
+                        {{ emp.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: DEPARTMENTS -->
+  @if (activeTab() === 'departments') {
+    <div class="corporate-card">
+      <div class="panel-top-bar">
+        <div>
+          <h2 class="section-heading">Corporate Departments</h2>
+          <p class="section-sub">Configured organizational cost centers and functional divisions</p>
+        </div>
+        @if (authService.isAdmin()) {
+          <button class="btn-primary" (click)="openAddDept()">+ Add Department</button>
+        }
+      </div>
+
+      <table class="corporate-table">
+        <thead>
+          <tr>
+            <th>Dept Code</th>
+            <th>Department Name</th>
+            <th>Description</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dept of departments(); track dept.id) {
+            <tr>
+              <td><span class="code-badge">{{ dept.deptCode }}</span></td>
+              <td class="font-bold">{{ dept.deptName }}</td>
+              <td>{{ dept.description || '—' }}</td>
+              <td>
+                <span class="corporate-badge" [class.success]="dept.isActive === 1" [class.danger]="dept.isActive === 0">
+                  {{ dept.isActive === 1 ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- TAB 3: DESIGNATIONS -->
+  @if (activeTab() === 'designations') {
+    <div class="corporate-card">
+      <div class="panel-top-bar">
+        <div>
+          <h2 class="section-heading">Designation & Band Catalog</h2>
+          <p class="section-sub">Standard job titles and compensation bands mapped to departments</p>
+        </div>
+        @if (authService.isAdmin()) {
+          <button class="btn-primary" (click)="openAddDesig()">+ Add Designation</button>
+        }
+      </div>
+
+      <table class="corporate-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Band Level</th>
+            <th>Department</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (desig of designations(); track desig.id) {
+            <tr>
+              <td class="font-bold">{{ desig.title }}</td>
+              <td><span class="band-pill">{{ desig.bandLevel || 'Standard' }}</span></td>
+              <td>{{ desig.departmentName || '—' }}</td>
+              <td>
+                <span class="corporate-badge" [class.success]="desig.isActive === 1" [class.danger]="desig.isActive === 0">
+                  {{ desig.isActive === 1 ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MODAL: ADD EMPLOYEE -->
+  @if (showAddEmployeeModal()) {
+    <div class="modal-overlay" (click)="showAddEmployeeModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Provision New Employee</h2>
+          <button class="modal-close" (click)="showAddEmployeeModal.set(false)">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitAddEmployee()" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input type="text" class="form-input" [(ngModel)]="newEmployee.firstName" name="firstName" required />
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input type="text" class="form-input" [(ngModel)]="newEmployee.lastName" name="lastName" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Corporate Email *</label>
+              <input type="email" class="form-input" [(ngModel)]="newEmployee.email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" class="form-input" [(ngModel)]="newEmployee.phone" name="phone" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department *</label>
+              <select class="form-input" [(ngModel)]="newEmployee.departmentId" name="departmentId" required>
+                @for (dept of departments(); track dept.id) {
+                  <option [value]="dept.id">{{ dept.deptName }} ({{ dept.deptCode }})</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Designation *</label>
+              <select class="form-input" [(ngModel)]="newEmployee.designationId" name="designationId" required>
+                @for (desig of designations(); track desig.id) {
+                  <option [value]="desig.id">{{ desig.title }} ({{ desig.bandLevel }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Reporting Manager (Hierarchy)</label>
+              <select class="form-input" [(ngModel)]="newEmployee.managerId" name="managerId">
+                <option [ngValue]="null">None (Top Executive / Department Head)</option>
+                @for (mgr of managers(); track mgr.id) {
+                  <option [value]="mgr.id">{{ mgr.fullName }} ({{ mgr.employeeCode }}) - {{ mgr.designationTitle }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hire Date *</label>
+              <input type="date" class="form-input" [(ngModel)]="newEmployee.hireDate" name="hireDate" required />
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="newEmployee.createUserAccount" name="createUserAccount" />
+              <span>Create portal login account (Default password: <code>Welcome@123</code>)</span>
+            </label>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showAddEmployeeModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Provision Employee</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: EDIT EMPLOYEE -->
+  @if (showEditEmployeeModal() && selectedEmployee(); as emp) {
+    <div class="modal-overlay" (click)="showEditEmployeeModal.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Edit Employee: {{ emp.employeeCode }}</h2>
+          <button class="modal-close" (click)="showEditEmployeeModal.set(false)">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitEditEmployee()" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input type="text" class="form-input" [(ngModel)]="editEmployeeData.firstName" name="editFirstName" required />
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input type="text" class="form-input" [(ngModel)]="editEmployeeData.lastName" name="editLastName" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Corporate Email *</label>
+              <input type="email" class="form-input" [(ngModel)]="editEmployeeData.email" name="editEmail" required />
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" class="form-input" [(ngModel)]="editEmployeeData.phone" name="editPhone" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department *</label>
+              <select class="form-input" [(ngModel)]="editEmployeeData.departmentId" name="editDepartmentId" required>
+                @for (dept of departments(); track dept.id) {
+                  <option [value]="dept.id">{{ dept.deptName }} ({{ dept.deptCode }})</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Designation *</label>
+              <select class="form-input" [(ngModel)]="editEmployeeData.designationId" name="editDesignationId" required>
+                @for (desig of designations(); track desig.id) {
+                  <option [value]="desig.id">{{ desig.title }} ({{ desig.bandLevel }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Reporting Manager</label>
+              <select class="form-input" [(ngModel)]="editEmployeeData.managerId" name="editManagerId">
+                <option [ngValue]="null">None</option>
+                @for (mgr of managers(); track mgr.id) {
+                  @if (mgr.id !== emp.id) {
+                    <option [value]="mgr.id">{{ mgr.fullName }} ({{ mgr.employeeCode }})</option>
+                  }
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select class="form-input" [(ngModel)]="editEmployeeData.status" name="editStatus">
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showEditEmployeeModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: 360° EMPLOYEE PROFILE -->
+  @if (showProfileModal() && selectedEmployee(); as emp) {
+    <div class="modal-overlay" (click)="showProfileModal.set(false)">
+      <div class="modal-card profile-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">360° Employee Record</h2>
+          <button class="modal-close" (click)="showProfileModal.set(false)">&times;</button>
+        </div>
+
+        <div class="profile-hero">
+          <div class="profile-avatar">{{ emp.firstName.charAt(0) }}{{ emp.lastName.charAt(0) }}</div>
+          <div class="profile-meta">
+            <div class="profile-name-row">
+              <h3 class="profile-name">{{ emp.fullName }}</h3>
+              <span class="code-badge">{{ emp.employeeCode }}</span>
+              <span class="corporate-badge" [class.success]="emp.status === 'ACTIVE'" [class.danger]="emp.status === 'INACTIVE'">
+                {{ emp.status }}
+              </span>
+            </div>
+            <p class="profile-desig">{{ emp.designationTitle }} &bull; {{ emp.departmentName }}</p>
+          </div>
+        </div>
+
+        <div class="profile-details-grid">
+          <div class="detail-box">
+            <span class="detail-label">CORPORATE EMAIL</span>
+            <span class="detail-val">{{ emp.email }}</span>
+          </div>
+          <div class="detail-box">
+            <span class="detail-label">CONTACT PHONE</span>
+            <span class="detail-val">{{ emp.phone || 'Not Registered' }}</span>
+          </div>
+          <div class="detail-box">
+            <span class="detail-label">HIRE DATE</span>
+            <span class="detail-val">{{ emp.hireDate }}</span>
+          </div>
+          <div class="detail-box">
+            <span class="detail-label">COMPENSATION BAND</span>
+            <span class="detail-val">{{ emp.bandLevel || 'Standard' }}</span>
+          </div>
+        </div>
+
+        <!-- Reporting Manager Hierarchy Card -->
+        <div class="hierarchy-section">
+          <span class="section-title">ORGANIZATIONAL HIERARCHY</span>
+          @if (emp.managerName) {
+            <div class="manager-card">
+              <div class="mgr-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <div class="mgr-details">
+                <span class="mgr-role-sub">DIRECT REPORTING MANAGER</span>
+                <span class="mgr-full">{{ emp.managerName }} ({{ emp.managerEmployeeCode }})</span>
+              </div>
+            </div>
+          } @else {
+            <div class="top-exec-card">
+              <span>Executive Level &bull; Reports Directly to Board/Director</span>
+            </div>
+          }
+        </div>
+
+        <!-- Portal Account Info -->
+        <div class="user-account-section">
+          <span class="section-title">SECURITY IDENTITY & RBAC</span>
+          <div class="account-row">
+            <span>Username: <strong>{{ emp.username || 'No portal account' }}</strong></span>
+            <span>Role: <span class="corporate-badge info">{{ emp.userRole || 'NONE' }}</span></span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="showProfileModal.set(false)">Close Profile</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ADD DEPARTMENT -->
+  @if (showDeptModal()) {
+    <div class="modal-overlay" (click)="showDeptModal.set(false)">
+      <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">New Department</h2>
+          <button class="modal-close" (click)="showDeptModal.set(false)">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitAddDept()" class="modal-form">
+          <div class="form-group">
+            <label>Department Code * (e.g. IT, MKT, OPS)</label>
+            <input type="text" class="form-input" [(ngModel)]="newDept.deptCode" name="deptCode" required />
+          </div>
+          <div class="form-group">
+            <label>Department Name *</label>
+            <input type="text" class="form-input" [(ngModel)]="newDept.deptName" name="deptName" required />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" class="form-input" [(ngModel)]="newDept.description" name="deptDesc" />
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showDeptModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Create Department</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ADD DESIGNATION -->
+  @if (showDesigModal()) {
+    <div class="modal-overlay" (click)="showDesigModal.set(false)">
+      <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">New Designation</h2>
+          <button class="modal-close" (click)="showDesigModal.set(false)">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitAddDesig()" class="modal-form">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" class="form-input" [(ngModel)]="newDesig.title" name="desigTitle" required />
+          </div>
+          <div class="form-group">
+            <label>Band Level (e.g. E1, E2, M1, M2)</label>
+            <input type="text" class="form-input" [(ngModel)]="newDesig.bandLevel" name="bandLevel" />
+          </div>
+          <div class="form-group">
+            <label>Department *</label>
+            <select class="form-input" [(ngModel)]="newDesig.departmentId" name="desigDeptId" required>
+              @for (dept of departments(); track dept.id) {
+                <option [value]="dept.id">{{ dept.deptName }} ({{ dept.deptCode }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="showDesigModal.set(false)">Cancel</button>
+            <button type="submit" class="btn-primary">Create Designation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

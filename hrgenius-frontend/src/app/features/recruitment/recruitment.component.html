@@ -1,0 +1,561 @@
+<div class="recruitment-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumbs">Talent Acquisition / Recruitment</div>
+      <h1 class="page-title">Talent Acquisition & ATS</h1>
+      <p class="page-subtitle">Manage open enterprise requisitions, candidate pipeline stages, and structured interview loops</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="showNewCandidateModal.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <line x1="19" y1="8" x2="19" y2="14"></line>
+          <line x1="22" y1="11" x2="16" y2="11"></line>
+        </svg>
+        Add Candidate
+      </button>
+      <button class="btn-primary" (click)="showNewJobModal.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Requisition
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metric Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">ACTIVE REQUISITIONS</span>
+        <div class="metric-icon-box blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ jobOpenings().length }} Open</div>
+      <div class="metric-footer">Across 6 engineering & business units</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">CANDIDATES IN PIPELINE</span>
+        <div class="metric-icon-box purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ candidates().length }} Active</div>
+      <div class="metric-footer">Sourced & screened this cycle</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">INTERVIEWS THIS WEEK</span>
+        <div class="metric-icon-box green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ interviews().length }} Scheduled</div>
+      <div class="metric-footer">Technical & managerial evaluation loops</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">OFFER ACCEPTANCE RATE</span>
+        <div class="metric-icon-box amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">85.7%</div>
+      <div class="metric-footer">Above enterprise industry benchmark</div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab() === 'requisitions'" (click)="activeTab.set('requisitions')">
+      Job Requisitions ({{ jobOpenings().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'pipeline'" (click)="activeTab.set('pipeline')">
+      ATS Candidate Pipeline ({{ candidates().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'interviews'" (click)="activeTab.set('interviews')">
+      Interviews Schedule ({{ interviews().length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: REQUISITIONS -->
+  @if (activeTab() === 'requisitions') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+          </svg>
+          <input type="text" [(ngModel)]="searchKeyword" placeholder="Search by role, department, manager..." class="filter-input" />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>ROLE / REQUISITION TITLE</th>
+              <th>DEPARTMENT</th>
+              <th>EXPERIENCE</th>
+              <th>LOCATION</th>
+              <th>OPENINGS</th>
+              <th>APPLICANTS</th>
+              <th>STATUS</th>
+              <th>HIRING MANAGER</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (job of filteredJobs; track job.id) {
+              <tr>
+                <td>
+                  <div class="role-title-box">
+                    <span class="role-title">{{ job.title }}</span>
+                    <span class="role-meta">{{ job.employmentType }} · Posted on {{ job.postedDate }}</span>
+                  </div>
+                </td>
+                <td><span class="dept-badge">{{ job.department }}</span></td>
+                <td>{{ job.experience }}</td>
+                <td>{{ job.location }}</td>
+                <td><strong>{{ job.openings }}</strong> ({{ job.filled }} Filled)</td>
+                <td><span class="applicant-pill">{{ job.applicantsCount }} Applicants</span></td>
+                <td>
+                  <span class="badge" [class.badge-success]="job.status === 'ACTIVE'" [class.badge-warning]="job.status === 'DRAFT'">
+                    {{ job.status }}
+                  </span>
+                </td>
+                <td>{{ job.hiringManager }}</td>
+                <td class="text-right">
+                  <button class="action-btn" (click)="activeTab.set('pipeline')" title="View Pipeline">
+                    View ATS
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: CANDIDATE PIPELINE (KANBAN STAGES) -->
+  @if (activeTab() === 'pipeline') {
+    <div class="pipeline-board">
+      <!-- Sourced Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Sourced / Applied</div>
+          <span class="count-badge">{{ getCandidatesByStage('SOURCED').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('SOURCED'); track c.id) {
+            <div class="candidate-card" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }} · {{ c.experienceYears }} yrs exp</div>
+              <div class="card-footer">
+                <span class="star-rating">★ {{ c.rating }}.0</span>
+                <button class="btn-micro" (click)="$event.stopPropagation(); advanceCandidate(c)">Next Stage &rarr;</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Screening Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Screening</div>
+          <span class="count-badge">{{ getCandidatesByStage('SCREENING').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('SCREENING'); track c.id) {
+            <div class="candidate-card" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }} · {{ c.experienceYears }} yrs exp</div>
+              <div class="card-footer">
+                <span class="star-rating">★ {{ c.rating }}.0</span>
+                <button class="btn-micro" (click)="$event.stopPropagation(); advanceCandidate(c)">Technical &rarr;</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Technical Round Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Technical Round</div>
+          <span class="count-badge">{{ getCandidatesByStage('TECHNICAL').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('TECHNICAL'); track c.id) {
+            <div class="candidate-card active-border" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }} · {{ c.experienceYears }} yrs exp</div>
+              <div class="card-footer">
+                <span class="star-rating">★ {{ c.rating }}.0</span>
+                <button class="btn-micro" (click)="$event.stopPropagation(); advanceCandidate(c)">Managerial &rarr;</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Managerial Review Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Managerial Review</div>
+          <span class="count-badge">{{ getCandidatesByStage('MANAGERIAL').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('MANAGERIAL'); track c.id) {
+            <div class="candidate-card" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }} · {{ c.experienceYears }} yrs exp</div>
+              <div class="card-footer">
+                <span class="star-rating">★ {{ c.rating }}.0</span>
+                <button class="btn-micro" (click)="$event.stopPropagation(); advanceCandidate(c)">Extend Offer &rarr;</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Offer Stage Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Offer Extended</div>
+          <span class="count-badge">{{ getCandidatesByStage('OFFER').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('OFFER'); track c.id) {
+            <div class="candidate-card offer-border" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }} · {{ c.experienceYears }} yrs exp</div>
+              <div class="card-footer">
+                <span class="star-rating">★ {{ c.rating }}.0</span>
+                <button class="btn-micro success" (click)="$event.stopPropagation(); advanceCandidate(c)">Mark Hired &rarr;</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Hired Column -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="col-title">Hired / Onboarding</div>
+          <span class="count-badge">{{ getCandidatesByStage('HIRED').length }}</span>
+        </div>
+        <div class="column-cards">
+          @for (c of getCandidatesByStage('HIRED'); track c.id) {
+            <div class="candidate-card hired-border" (click)="openCandidateDetails(c)">
+              <div class="card-name">{{ c.fullName }}</div>
+              <div class="card-role">{{ c.appliedRole }}</div>
+              <div class="card-sub">{{ c.currentCompany }}</div>
+              <div class="card-footer">
+                <span class="badge badge-success">HIRED</span>
+                <span class="card-date">{{ c.appliedDate }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: INTERVIEWS SCHEDULE -->
+  @if (activeTab() === 'interviews') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="toolbar-title">Structured Interview Rounds</div>
+        <button class="btn-primary" (click)="showScheduleModal.set(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Schedule Round
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>CANDIDATE</th>
+              <th>TARGET ROLE</th>
+              <th>INTERVIEW ROUND</th>
+              <th>PANEL INTERVIEWER</th>
+              <th>SCHEDULED DATE & TIME</th>
+              <th>LOCATION / LINK</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of interviews(); track item.id) {
+              <tr>
+                <td><strong>{{ item.candidateName }}</strong></td>
+                <td>{{ item.roleTitle }}</td>
+                <td><span class="round-badge">{{ item.roundName }}</span></td>
+                <td>{{ item.interviewer }}</td>
+                <td><span class="time-badge">{{ item.scheduledTime }}</span></td>
+                <td><span class="link-text">{{ item.location }}</span></td>
+                <td>
+                  <span class="badge badge-info">{{ item.status }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: CANDIDATE DOSSIER -->
+  @if (selectedCandidate(); as c) {
+    <div class="modal-backdrop" (click)="closeCandidateModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">{{ c.fullName }}</h2>
+            <p class="modal-subtitle">{{ c.appliedRole }} · {{ c.department }}</p>
+          </div>
+          <button class="btn-close" (click)="closeCandidateModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Corporate Email</span>
+              <span class="val">{{ c.email }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Contact Phone</span>
+              <span class="val">{{ c.phone }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Current Employer</span>
+              <span class="val">{{ c.currentCompany }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total Experience</span>
+              <span class="val">{{ c.experienceYears }} Years</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Current Stage</span>
+              <span class="val"><span class="badge badge-info">{{ c.stage }}</span></span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Evaluation Rating</span>
+              <span class="val">★ {{ c.rating }}.0 / 5.0</span>
+            </div>
+          </div>
+
+          <div class="notes-box">
+            <span class="label">Interviewer Assessment Notes:</span>
+            <p class="notes-text">{{ c.notes }}</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeCandidateModal()">Close</button>
+          @if (c.stage !== 'HIRED') {
+            <button class="btn-primary" (click)="advanceCandidate(c)">
+              Advance to Next ATS Stage
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: NEW REQUISITION -->
+  @if (showNewJobModal()) {
+    <div class="modal-backdrop" (click)="showNewJobModal.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Create Job Requisition</h2>
+            <p class="modal-subtitle">Open a new position for hiring approval and candidate sourcing</p>
+          </div>
+          <button class="btn-close" (click)="showNewJobModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Position / Role Title *</label>
+            <input type="text" [(ngModel)]="newJob.title" class="form-input" placeholder="e.g. Senior Backend Engineer" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department *</label>
+              <select [(ngModel)]="newJob.department" class="form-input">
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Cloud Operations & SecOps">Cloud Operations & SecOps</option>
+                <option value="Product & UX Design">Product & UX Design</option>
+                <option value="Enterprise Sales & Marketing">Enterprise Sales & Marketing</option>
+                <option value="Quality Assurance & Testing">Quality Assurance & Testing</option>
+                <option value="Data Science & AI Analytics">Data Science & AI Analytics</option>
+                <option value="Finance & Operations">Finance & Operations</option>
+                <option value="Human Resources & Talent">Human Resources & Talent</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Number of Openings</label>
+              <input type="number" [(ngModel)]="newJob.openings" class="form-input" min="1" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Experience Requirement</label>
+              <input type="text" [(ngModel)]="newJob.experience" class="form-input" placeholder="e.g. 4-7 Years" />
+            </div>
+            <div class="form-group">
+              <label>Hiring Manager</label>
+              <input type="text" [(ngModel)]="newJob.hiringManager" class="form-input" placeholder="e.g. Priya Sharma" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Role Overview & Key Qualifications</label>
+            <textarea [(ngModel)]="newJob.description" rows="3" class="form-input" placeholder="Summarize role requirements..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showNewJobModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="createJobOpening()">Publish Requisition</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ADD CANDIDATE -->
+  @if (showNewCandidateModal()) {
+    <div class="modal-backdrop" (click)="showNewCandidateModal.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Add Candidate to Pipeline</h2>
+            <p class="modal-subtitle">Log inbound applicant or direct sourcing referral</p>
+          </div>
+          <button class="btn-close" (click)="showNewCandidateModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" [(ngModel)]="newCandidate.fullName" class="form-input" placeholder="e.g. Siddharth Rao" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email Address *</label>
+              <input type="email" [(ngModel)]="newCandidate.email" class="form-input" placeholder="siddharth@example.com" />
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" [(ngModel)]="newCandidate.phone" class="form-input" placeholder="+91 98765 00000" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Applying For Role *</label>
+              <input type="text" [(ngModel)]="newCandidate.appliedRole" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Experience (Years)</label>
+              <input type="number" [(ngModel)]="newCandidate.experienceYears" class="form-input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Current Company / Previous Employer</label>
+            <input type="text" [(ngModel)]="newCandidate.currentCompany" class="form-input" placeholder="Current company name" />
+          </div>
+          <div class="form-group">
+            <label>Screener Notes</label>
+            <textarea [(ngModel)]="newCandidate.notes" rows="2" class="form-input" placeholder="Candidate background and initial notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showNewCandidateModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitCandidate()">Add to Pipeline</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: SCHEDULE INTERVIEW -->
+  @if (showScheduleModal()) {
+    <div class="modal-backdrop" (click)="showScheduleModal.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Schedule Evaluation Round</h2>
+            <p class="modal-subtitle">Assign interviewers and calendar slots</p>
+          </div>
+          <button class="btn-close" (click)="showScheduleModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Candidate Name *</label>
+            <input type="text" [(ngModel)]="newInterview.candidateName" class="form-input" placeholder="Select or type candidate name" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Target Role</label>
+              <input type="text" [(ngModel)]="newInterview.roleTitle" class="form-input" placeholder="e.g. Senior Frontend Architect" />
+            </div>
+            <div class="form-group">
+              <label>Interview Stage</label>
+              <select [(ngModel)]="newInterview.roundName" class="form-input">
+                <option value="Round 1: Technical Coding">Round 1: Technical Coding</option>
+                <option value="Round 2: System Architecture">Round 2: System Architecture</option>
+                <option value="Round 3: Managerial & Cultural Fit">Round 3: Managerial & Cultural Fit</option>
+                <option value="Round 4: Executive Sync">Round 4: Executive Sync</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Panel Interviewer(s) *</label>
+              <input type="text" [(ngModel)]="newInterview.interviewer" class="form-input" placeholder="e.g. Priya Sharma, Divya Krishnan" />
+            </div>
+            <div class="form-group">
+              <label>Date & Time Slot *</label>
+              <input type="text" [(ngModel)]="newInterview.scheduledTime" class="form-input" placeholder="e.g. Friday at 15:00 IST" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Meeting Link / Conference Room</label>
+            <input type="text" [(ngModel)]="newInterview.location" class="form-input" placeholder="https://meet.google.com/xxx-xxxx-xxx" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showScheduleModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="scheduleInterview()">Confirm Schedule</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,281 @@
+<div class="compliance-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumbs">Talent & Governance / Statutory Compliance</div>
+      <h1 class="page-title">Statutory Compliance & Governance</h1>
+      <p class="page-subtitle">Track mandatory labor returns, tax withholdings, institutional policies, and audit trails</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="activeTab.set('audit')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        Audit Checklist
+      </button>
+      <button class="btn-primary" (click)="activeTab.set('policies')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        Policy Repository
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">STATUTORY COMPLIANCE HEALTH</span>
+        <div class="metric-icon-box green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">98.5%</div>
+      <div class="metric-footer">Audit Ready & Compliant</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">ACTIVE STATUTORY FILINGS</span>
+        <div class="metric-icon-box blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ filings().length }} Portals</div>
+      <div class="metric-footer">EPFO, ESIC, PT, TDS & POSH</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">PUBLISHED POLICIES</span>
+        <div class="metric-icon-box purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ policies().length }} Active</div>
+      <div class="metric-footer">96% average employee sign-off</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">LEGAL AUDIT FLAGS</span>
+        <div class="metric-icon-box amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">0 Critical</div>
+      <div class="metric-footer">Zero violations or penalties</div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab() === 'filings'" (click)="activeTab.set('filings')">
+      Statutory Filings Matrix ({{ filings().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'policies'" (click)="activeTab.set('policies')">
+      Corporate Policies ({{ policies().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'audit'" (click)="activeTab.set('audit')">
+      Audit Readiness Matrix
+    </button>
+  </div>
+
+  <!-- TAB 1: FILINGS MATRIX -->
+  @if (activeTab() === 'filings') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+          </svg>
+          <input type="text" [(ngModel)]="searchKeyword" placeholder="Search statutory bodies, returns..." class="filter-input" />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>STATUTORY BODY & RETURN</th>
+              <th>FREQUENCY</th>
+              <th>PERIOD</th>
+              <th>DUE DATE</th>
+              <th>REMITTANCE</th>
+              <th>STATUS</th>
+              <th>CHALLAN / ACK</th>
+              <th>OFFICER</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (filing of filteredFilings; track filing.id) {
+              <tr>
+                <td>
+                  <div class="filing-title-box">
+                    <span class="filing-title">{{ filing.filingName }}</span>
+                    <span class="filing-body">{{ filing.statutoryBody }}</span>
+                  </div>
+                </td>
+                <td><span class="freq-badge">{{ filing.frequency }}</span></td>
+                <td>{{ filing.period }}</td>
+                <td><span class="date-tag">{{ filing.dueDate }}</span></td>
+                <td><strong>{{ filing.amount }}</strong></td>
+                <td>
+                  <span class="badge" [class.badge-success]="filing.status === 'FILED'" [class.badge-warning]="filing.status === 'PENDING'">
+                    {{ filing.status }}
+                  </span>
+                </td>
+                <td>
+                  @if (filing.challanNumber) {
+                    <code>{{ filing.challanNumber }}</code>
+                  } @else {
+                    <span class="text-muted">Pending upload</span>
+                  }
+                </td>
+                <td>{{ filing.responsibleOfficer }}</td>
+                <td class="text-right">
+                  @if (filing.status === 'PENDING') {
+                    <button class="action-btn-green" (click)="markAsFiled(filing)">
+                      Mark as Filed
+                    </button>
+                  } @else {
+                    <span class="done-tag">Verified</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: POLICIES REPOSITORY -->
+  @if (activeTab() === 'policies') {
+    <div class="policies-grid">
+      @for (policy of policies(); track policy.id) {
+        <div class="corporate-card policy-card">
+          <div class="policy-header">
+            <span class="policy-code">{{ policy.policyCode }}</span>
+            <span class="policy-ver">{{ policy.version }}</span>
+          </div>
+
+          <h3 class="policy-title">{{ policy.title }}</h3>
+          <span class="policy-cat">{{ policy.category }}</span>
+          <p class="policy-summary">{{ policy.summary }}</p>
+
+          <div class="policy-footer">
+            <div class="ack-box">
+              <span class="ack-label">Employee Sign-off</span>
+              <div class="ack-bar-wrap">
+                <div class="ack-bar-track">
+                  <div class="ack-bar-fill" [style.width.%]="policy.acknowledgedPercent"></div>
+                </div>
+                <span class="ack-pct">{{ policy.acknowledgedPercent }}%</span>
+              </div>
+            </div>
+
+            <button class="action-btn" (click)="viewPolicy(policy)">
+              Read Document
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TAB 3: AUDIT CHECKLIST -->
+  @if (activeTab() === 'audit') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="toolbar-title">Labor & Information Governance Audit Matrix</div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>AUDIT JURISDICTION</th>
+              <th>STATUTORY REGULATION</th>
+              <th>GOVERNANCE REQUIREMENT</th>
+              <th>LAST AUDITED</th>
+              <th>AUDITOR / AUTHORITY</th>
+              <th>AUDIT VERDICT</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (audit of auditChecklist(); track audit.id) {
+              <tr>
+                <td><strong>{{ audit.area }}</strong></td>
+                <td><code>{{ audit.regulation }}</code></td>
+                <td>{{ audit.requirement }}</td>
+                <td>{{ audit.lastAudited }}</td>
+                <td>{{ audit.auditor }}</td>
+                <td>
+                  <span class="badge badge-success">COMPLIANT</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: POLICY VIEWER -->
+  @if (selectedPolicy(); as p) {
+    <div class="modal-backdrop" (click)="closePolicyModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="policy-code">{{ p.policyCode }} · {{ p.version }}</span>
+            <h2 class="modal-title">{{ p.title }}</h2>
+          </div>
+          <button class="btn-close" (click)="closePolicyModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="policy-doc-box">
+            <div class="doc-meta-bar">
+              <span><strong>Category:</strong> {{ p.category }}</span>
+              <span><strong>Effective Date:</strong> {{ p.effectiveDate }}</span>
+              <span><strong>Status:</strong> Active & Enforced</span>
+            </div>
+
+            <div class="doc-text">
+              <h4>1. Institutional Scope & Purpose</h4>
+              <p>{{ p.summary }}</p>
+
+              <h4>2. Compliance Mandate</h4>
+              <p>All permanent, probationary, and contractual personnel within the organization must adhere strictly to this corporate governance protocol. Violations are subject to disciplinary review under the Corporate Ethics Tribunal.</p>
+
+              <h4>3. Reporting & Whistleblower Protection</h4>
+              <p>Concerns or observed discrepancies must be reported directly to the Corporate Governance Officer or through the confidential institutional ethics portal.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closePolicyModal()">Close</button>
+          <button class="btn-primary" (click)="closePolicyModal()">
+            Download Official PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

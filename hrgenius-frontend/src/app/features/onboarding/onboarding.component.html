@@ -1,0 +1,376 @@
+<div class="onboarding-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumbs">Talent Acquisition / Onboarding</div>
+      <h1 class="page-title">Employee Onboarding & Induction</h1>
+      <p class="page-subtitle">Track pre-boarding checklists, IT hardware provisioning, and structured 30-day induction programs</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="showNewJoinerModal.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Joiner Induction
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">ACTIVE ONBOARDINGS</span>
+        <div class="metric-icon-box blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ joiners().length }} In-Progress</div>
+      <div class="metric-footer">Across Engineering & Sales</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">IT HARDWARE ALLOCATED</span>
+        <div class="metric-icon-box green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">{{ itAssets().length }} Assets</div>
+      <div class="metric-footer">94% provisioned on Day 1</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">AVG INDUCTION COMPLETION</span>
+        <div class="metric-icon-box purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">4.2 Days</div>
+      <div class="metric-footer">Target benchmark: under 5 days</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">COMPLIANCE READINESS</span>
+        <div class="metric-icon-box amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="metric-value">100%</div>
+      <div class="metric-footer">Statutory PF & KYC verified</div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab() === 'joiners'" (click)="activeTab.set('joiners')">
+      Active Joiners ({{ joiners().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'checklist'" (click)="activeTab.set('checklist')">
+      Interactive Induction Checklist
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'assets'" (click)="activeTab.set('assets')">
+      IT Asset Provisioning ({{ itAssets().length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: JOINERS TABLE -->
+  @if (activeTab() === 'joiners') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+          </svg>
+          <input type="text" [(ngModel)]="searchKeyword" placeholder="Search by name, role, mentor..." class="filter-input" />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>JOINER NAME & EMAIL</th>
+              <th>DESIGNATION & DEPT</th>
+              <th>JOINING DATE</th>
+              <th>STAGE</th>
+              <th>CHECKLIST COMPLETION</th>
+              <th>ASSIGNED BUDDY</th>
+              <th>STATUS</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (j of filteredJoiners; track j.id) {
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <span class="user-avatar">{{ j.fullName.charAt(0) }}</span>
+                    <div>
+                      <div class="user-name">{{ j.fullName }}</div>
+                      <div class="user-email">{{ j.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="role-box">
+                    <span class="role-text">{{ j.role }}</span>
+                    <span class="dept-text">{{ j.department }}</span>
+                  </div>
+                </td>
+                <td><span class="date-tag">{{ j.joiningDate }}</span></td>
+                <td><span class="stage-badge">{{ j.stage }}</span></td>
+                <td>
+                  <div class="progress-wrap">
+                    <div class="progress-bar-bg">
+                      <div class="progress-bar-fill" [style.width.%]="calculateProgress(j)"></div>
+                    </div>
+                    <span class="progress-percent">{{ calculateProgress(j) }}%</span>
+                  </div>
+                </td>
+                <td>{{ j.buddy }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="j.status === 'COMPLETED'" [class.badge-info]="j.status === 'IN_PROGRESS'">
+                    {{ j.status }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <button class="action-btn" (click)="selectJoiner(j)">
+                    Manage Checklist
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: INTERACTIVE CHECKLIST -->
+  @if (activeTab() === 'checklist') {
+    @if (selectedJoiner(); as joiner) {
+      <div class="checklist-card">
+        <div class="checklist-header">
+          <div class="joiner-profile-bar">
+            <span class="big-avatar">{{ joiner.fullName.charAt(0) }}</span>
+            <div>
+              <h2 class="joiner-name">{{ joiner.fullName }}</h2>
+              <p class="joiner-meta">{{ joiner.role }} · {{ joiner.department }} · Joining {{ joiner.joiningDate }}</p>
+            </div>
+          </div>
+          <div class="joiner-progress-box">
+            <div class="progress-label">Total Induction Completed: <strong>{{ calculateProgress(joiner) }}%</strong></div>
+            <div class="progress-bar-bg large">
+              <div class="progress-bar-fill" [style.width.%]="calculateProgress(joiner)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="checklist-body">
+          <div class="checklist-section">
+            <h3 class="section-title">1. HR Documents & Statutory Compliance (PAN / PF / KYC)</h3>
+            <div class="task-list">
+              @for (task of joiner.tasks; track task.id) {
+                @if (task.category === 'HR_DOCUMENTS') {
+                  <div class="task-item" [class.completed]="task.completed" (click)="toggleTask(task)">
+                    <input type="checkbox" [checked]="task.completed" class="task-check" (click)="$event.stopPropagation(); toggleTask(task)" />
+                    <div class="task-content">
+                      <span class="task-title">{{ task.title }}</span>
+                      <span class="task-meta">Assigned to: {{ task.assignee }} · Due by {{ task.dueDate }}</span>
+                    </div>
+                    <span class="task-status-pill" [class.done]="task.completed">
+                      {{ task.completed ? 'VERIFIED' : 'PENDING' }}
+                    </span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="checklist-section">
+            <h3 class="section-title">2. IT Assets & Digital Workplace Setup</h3>
+            <div class="task-list">
+              @for (task of joiner.tasks; track task.id) {
+                @if (task.category === 'IT_PROVISIONING') {
+                  <div class="task-item" [class.completed]="task.completed" (click)="toggleTask(task)">
+                    <input type="checkbox" [checked]="task.completed" class="task-check" (click)="$event.stopPropagation(); toggleTask(task)" />
+                    <div class="task-content">
+                      <span class="task-title">{{ task.title }}</span>
+                      <span class="task-meta">Assigned to: {{ task.assignee }} · Due by {{ task.dueDate }}</span>
+                    </div>
+                    <span class="task-status-pill" [class.done]="task.completed">
+                      {{ task.completed ? 'CONFIGURED' : 'PENDING' }}
+                    </span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="checklist-section">
+            <h3 class="section-title">3. Department & Team Orientation</h3>
+            <div class="task-list">
+              @for (task of joiner.tasks; track task.id) {
+                @if (task.category === 'TEAM_ORIENTATION') {
+                  <div class="task-item" [class.completed]="task.completed" (click)="toggleTask(task)">
+                    <input type="checkbox" [checked]="task.completed" class="task-check" (click)="$event.stopPropagation(); toggleTask(task)" />
+                    <div class="task-content">
+                      <span class="task-title">{{ task.title }}</span>
+                      <span class="task-meta">Assigned to: {{ task.assignee }} · Due by {{ task.dueDate }}</span>
+                    </div>
+                    <span class="task-status-pill" [class.done]="task.completed">
+                      {{ task.completed ? 'COMPLETED' : 'PENDING' }}
+                    </span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          @if (joiner.tasks.some(t => t.category === 'PROBATION_REVIEW')) {
+            <div class="checklist-section">
+              <h3 class="section-title">4. 30-Day Check-in & Probation Goals</h3>
+              <div class="task-list">
+                @for (task of joiner.tasks; track task.id) {
+                  @if (task.category === 'PROBATION_REVIEW') {
+                    <div class="task-item" [class.completed]="task.completed" (click)="toggleTask(task)">
+                      <input type="checkbox" [checked]="task.completed" class="task-check" (click)="$event.stopPropagation(); toggleTask(task)" />
+                      <div class="task-content">
+                        <span class="task-title">{{ task.title }}</span>
+                        <span class="task-meta">Assigned to: {{ task.assignee }} · Due by {{ task.dueDate }}</span>
+                      </div>
+                      <span class="task-status-pill" [class.done]="task.completed">
+                        {{ task.completed ? 'SIGNED OFF' : 'PENDING' }}
+                      </span>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- TAB 3: IT ASSETS -->
+  @if (activeTab() === 'assets') {
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="toolbar-title">Hardware Asset Allocation Register</div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>ALLOCATED EMPLOYEE</th>
+              <th>ASSET CATEGORY</th>
+              <th>HARDWARE SPECIFICATION / MODEL</th>
+              <th>SERIAL / ASSET TAG</th>
+              <th>PROVISIONED DATE</th>
+              <th>ASSIGNED BY</th>
+              <th>PROVISION STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asset of itAssets(); track asset.id) {
+              <tr>
+                <td><strong>{{ asset.employeeName }}</strong></td>
+                <td><span class="dept-badge">{{ asset.assetType }}</span></td>
+                <td>{{ asset.model }}</td>
+                <td><code>{{ asset.serialNumber }}</code></td>
+                <td>{{ asset.assignedDate }}</td>
+                <td>{{ asset.assignedBy }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="asset.status === 'PROVISIONED'" [class.badge-warning]="asset.status === 'IN_TRANSIT'" [class.badge-info]="asset.status === 'PENDING'">
+                    {{ asset.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: NEW JOINER -->
+  @if (showNewJoinerModal()) {
+    <div class="modal-backdrop" (click)="showNewJoinerModal.set(false)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">Initiate New Onboarding</h2>
+            <p class="modal-subtitle">Generate induction roadmap and statutory compliance tracker</p>
+          </div>
+          <button class="btn-close" (click)="showNewJoinerModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" [(ngModel)]="newJoiner.fullName" class="form-input" placeholder="e.g. Ramesh Chandra" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Corporate Email *</label>
+              <input type="email" [(ngModel)]="newJoiner.email" class="form-input" placeholder="ramesh@hrgenius.internal" />
+            </div>
+            <div class="form-group">
+              <label>Designation / Role *</label>
+              <input type="text" [(ngModel)]="newJoiner.role" class="form-input" placeholder="e.g. Senior Software Engineer" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department *</label>
+              <select [(ngModel)]="newJoiner.department" class="form-input">
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Cloud Operations & SecOps">Cloud Operations & SecOps</option>
+                <option value="Product & UX Design">Product & UX Design</option>
+                <option value="Enterprise Sales & Marketing">Enterprise Sales & Marketing</option>
+                <option value="Quality Assurance & Testing">Quality Assurance & Testing</option>
+                <option value="Data Science & AI Analytics">Data Science & AI Analytics</option>
+                <option value="Finance & Operations">Finance & Operations</option>
+                <option value="Human Resources & Talent">Human Resources & Talent</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Joining Date</label>
+              <input type="date" [(ngModel)]="newJoiner.joiningDate" class="form-input" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Assigned Onboarding Buddy</label>
+              <input type="text" [(ngModel)]="newJoiner.buddy" class="form-input" placeholder="e.g. Priya Sharma" />
+            </div>
+            <div class="form-group">
+              <label>Reporting Manager</label>
+              <input type="text" [(ngModel)]="newJoiner.manager" class="form-input" placeholder="e.g. Rajesh Kumar" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showNewJoinerModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="createOnboarding()">Start Induction</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

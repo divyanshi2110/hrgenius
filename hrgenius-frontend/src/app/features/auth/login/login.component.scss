@@ -1,0 +1,284 @@
+/* Login Page - Harmonized Enterprise Color Contrast Matching Inside App */
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-canvas, #f8fafc);
+  background-image: radial-gradient(at 50% 0%, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 2rem 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Outer Card Frame - Consistent with Enterprise Cards */
+.login-frame {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  width: 100%;
+  max-width: 900px;
+  min-height: 520px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* LEFT PANEL (Only Animated Photo on Light Slate) */
+.left-panel {
+  background-color: #f1f5f9;
+  padding: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--color-border, #e2e8f0);
+
+  .illustration-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+
+    .illustration-img {
+      max-width: 100%;
+      height: auto;
+      max-height: 360px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.08));
+    }
+  }
+}
+
+/* RIGHT PANEL (Sign In, Inputs, Blue Button, Role Selectors) */
+.right-panel {
+  background-color: var(--color-surface, #ffffff);
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+
+  .form-header {
+    .form-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-text-primary, #0f172a);
+      letter-spacing: -0.4px;
+    }
+  }
+
+  /* Alerts */
+  .alert {
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius-md, 6px);
+    font-size: 0.825rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .alert-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    &.alert-danger {
+      background-color: var(--status-danger-bg, #fef2f2);
+      color: var(--status-danger-text, #991b1b);
+      border: 1px solid var(--status-danger-border, #fecaca);
+    }
+  }
+
+  /* Form Elements */
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    .field-label {
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--color-text-secondary, #475569);
+    }
+
+    .field-input {
+      background-color: var(--color-surface, #ffffff);
+      border: 1px solid var(--color-border, #e2e8f0);
+      border-radius: var(--radius-md, 6px);
+      padding: 0.75rem 0.9rem;
+      font-size: 0.875rem;
+      color: var(--color-text-primary, #0f172a);
+      outline: none;
+      transition: all 0.15s ease;
+      font-family: inherit;
+
+      &::placeholder {
+        color: var(--color-text-subtle, #94a3b8);
+      }
+
+      &:focus {
+        border-color: var(--color-brand-blue, #2563eb);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+    }
+
+    .input-with-eye {
+      position: relative;
+
+      .field-input.pr-eye {
+        width: 100%;
+        padding-right: 2.5rem;
+        box-sizing: border-box;
+      }
+
+      .eye-btn {
+        position: absolute;
+        right: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        color: var(--color-text-muted, #64748b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          color: var(--color-text-primary, #0f172a);
+        }
+
+        .eye-icon {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+
+  /* Primary Brand Blue Button (Identical to Inside Pages) */
+  .btn-submit {
+    background-color: var(--color-brand-blue, #2563eb);
+    color: #ffffff;
+    border: 1px solid var(--color-brand-blue, #2563eb);
+    border-radius: var(--radius-md, 6px);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0.8rem 1.5rem;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+
+    &:hover {
+      background-color: var(--color-brand-blue-hover, #1d4ed8);
+      border-color: var(--color-brand-blue-hover, #1d4ed8);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  /* Quick Role Access Bar */
+  .demo-bar {
+    background-color: #f8fafc;
+    border: 1px dashed var(--color-border-hover, #cbd5e1);
+    border-radius: var(--radius-md, 6px);
+    padding: 0.75rem 0.9rem;
+    margin-top: 0.5rem;
+
+    .demo-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-muted, #64748b);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .demo-chips {
+      display: flex;
+      gap: 0.5rem;
+
+      .chip {
+        flex: 1;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.35rem 0.5rem;
+        border-radius: var(--radius-sm, 4px);
+        border: 1px solid;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+
+        &.chip-admin {
+          background-color: var(--status-info-bg, #eff6ff);
+          color: var(--status-info-text, #1e40af);
+          border-color: var(--status-info-border, #bfdbfe);
+          &:hover { background-color: #dbeafe; }
+        }
+
+        &.chip-mgr {
+          background-color: var(--status-success-bg, #ecfdf5);
+          color: var(--status-success-text, #065f46);
+          border-color: var(--status-success-border, #a7f3d0);
+          &:hover { background-color: #d1fae5; }
+        }
+
+        &.chip-emp {
+          background-color: #f1f5f9;
+          color: #334155;
+          border-color: #cbd5e1;
+          &:hover { background-color: #e2e8f0; }
+        }
+      }
+    }
+  }
+}
+
+/* Responsive Mobile Layout */
+@media (max-width: 820px) {
+  .login-frame {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    min-height: auto;
+  }
+
+  .left-panel {
+    display: none;
+  }
+
+  .right-panel {
+    padding: 2.5rem 1.75rem;
+  }
+}
